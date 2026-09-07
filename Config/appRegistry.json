@@ -1,0 +1,20 @@
+{
+  "apps": [
+    {
+      "appId": "ManagedApp.Template",
+      "name": "Managed App Template",
+      "startCommand": "dotnet run --project samples/ManagedApp.Template",
+      "zmqEndpoint": "tcp://127.0.0.1:5557"
+    },
+    {
+      "appId": "notepad",
+      "name": "Notepad",
+      "startCommand": "C:\\Windows\\system32\\notepad.exe",
+      "zmqEndpoint": "tcp://127.0.0.1:5557"
+    }
+  ],
+  "zeromq": {
+    "pubEndpoint": "tcp://127.0.0.1:5556",
+    "subEndpoint": "tcp://127.0.0.1:5557"
+  }
+}

@@ -1,0 +1,28 @@
+# Visual Studio and VS Code
+.vs/
+.vscode/
+
+# .NET build output
+[Bb]in/
+[Oo]bj/
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.rsuser
+
+# Test and coverage output
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# Runtime logs and local process state
+Logs/*
+!Logs/.gitkeep
+*.log
+
+# OS metadata
+.DS_Store
+Thumbs.db
