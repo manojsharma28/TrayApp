@@ -21,6 +21,8 @@ public class TrayService
     private readonly TrayApp.Shared.Interfaces.IStateTracker? _tracker;
     private TrayIcon? _trayIcon;
     private Views.SettingsWindow? _settingsWindow;
+    private Views.TrayMenuWindow? _trayMenuWindow;
+    private NativeMenu? _nativeMenu;
 
     public TrayService(IAppRegistry registry, IAppController controller, IProcessManager processManager, TrayApp.Shared.Interfaces.IStateTracker? tracker, ILogger<TrayService> log)
     {
@@ -46,63 +48,67 @@ public class TrayService
                     IsVisible = true
                 };
                 _trayIcon = tray;
+                _nativeMenu = BuildNativeMenu(desktop);
+                tray.Menu = _nativeMenu;
 
-                var menu = new NativeMenu();
-
-                if (!_registry.Apps.Any())
-                {
-                    var noAppsItem = new NativeMenuItem("No apps configured");
-                    noAppsItem.IsEnabled = false;
-                    menu.Items.Add(noAppsItem);
-                }
-                else
-                {
-                    foreach (var app in _registry.Apps)
-                    {
-                        var appMenu = new NativeMenuItem(app.Name);
-                        var submenu = new NativeMenu();
-
-                        var startItem = new NativeMenuItem("Start");
-                        startItem.Click += async (s, e) => await _controller.StartAsync(app.Id);
-                        submenu.Items.Add(startItem);
-
-                        var stopItem = new NativeMenuItem("Stop");
-                        stopItem.Click += async (s, e) => await _controller.StopAsync(app.Id);
-                        submenu.Items.Add(stopItem);
-
-                        var statusItem = new NativeMenuItem($"Status: {{unknown}}") { IsEnabled = false };
-                        submenu.Items.Add(new NativeMenuItemSeparator());
-                        submenu.Items.Add(statusItem);
-
-                        appMenu.Menu = submenu;
-                        menu.Items.Add(appMenu);
-                    }
-                }
-
-                var exitItem = new NativeMenuItem("Exit");
-                exitItem.Click += (s, e) => desktop.Shutdown();
-                menu.Items.Add(new NativeMenuItemSeparator());
-                var settingsItem = new NativeMenuItem("Settings");
-                settingsItem.Click += (s, e) => ShowSettingsWindow();
-                menu.Items.Add(settingsItem);
-                menu.Items.Add(exitItem);
-
-                tray.Clicked += (s, e) => ShowSettingsWindow();
-                tray.Menu = menu;
+                tray.Clicked += (s, e) => ShowTrayMenu(desktop);
 
                 // subscribe to state tracker updates if available
                 if (_tracker != null)
                 {
-                    _tracker.StatusUpdated += s => Avalonia.Threading.Dispatcher.UIThread.Post(() => UpdateStatusForApp(menu, s));
+                    _tracker.StatusUpdated += s => Avalonia.Threading.Dispatcher.UIThread.Post(() => UpdateStatusForApp(s));
                 }
 
-                _pollTimer = new Timer(_ => _ = UpdateStatusesAsync(menu), null, 0, 3000);
+                _pollTimer = new Timer(_ => _ = UpdateStatusesAsync(), null, 0, 3000);
             }
         }
         catch (Exception ex)
         {
             _log.LogError(ex, "Failed to initialize tray");
         }
+    }
+
+    private NativeMenu BuildNativeMenu(IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        var menu = new NativeMenu();
+
+        if (!_registry.Apps.Any())
+        {
+            var emptyItem = new NativeMenuItem("No managed applications configured")
+            {
+                IsEnabled = false
+            };
+            menu.Items.Add(emptyItem);
+        }
+        else
+        {
+            foreach (var app in _registry.Apps)
+            {
+                var appItem = new NativeMenuItem(app.Name);
+                var submenu = new NativeMenu();
+                var startItem = new NativeMenuItem("Start application");
+                startItem.Click += async (_, _) => await _controller.StartAsync(app.Id);
+                var stopItem = new NativeMenuItem("Stop application");
+                stopItem.Click += async (_, _) => await _controller.StopAsync(app.Id);
+                var statusItem = new NativeMenuItem("Status: unknown") { IsEnabled = false };
+
+                submenu.Items.Add(startItem);
+                submenu.Items.Add(stopItem);
+                submenu.Items.Add(new NativeMenuItemSeparator());
+                submenu.Items.Add(statusItem);
+                appItem.Menu = submenu;
+                menu.Items.Add(appItem);
+            }
+        }
+
+        menu.Items.Add(new NativeMenuItemSeparator());
+        var settingsItem = new NativeMenuItem("Open settings");
+        settingsItem.Click += (_, _) => ShowSettingsWindow();
+        menu.Items.Add(settingsItem);
+        var exitItem = new NativeMenuItem("Quit TrayAppManager");
+        exitItem.Click += (_, _) => desktop.Shutdown();
+        menu.Items.Add(exitItem);
+        return menu;
     }
 
     private void ShowSettingsWindow()
@@ -119,6 +125,36 @@ public class TrayService
             {
                 _settingsWindow.Activate();
                 _settingsWindow.Show();
+            }
+        });
+    }
+
+    private void ShowTrayMenu(IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            if (_trayMenuWindow?.IsVisible == true)
+            {
+                _trayMenuWindow.Close();
+                return;
+            }
+
+            _trayMenuWindow = new Views.TrayMenuWindow(
+                _registry,
+                _controller,
+                _processManager,
+                ShowSettingsWindow,
+                () => desktop.Shutdown());
+            _trayMenuWindow.Closed += (_, _) => _trayMenuWindow = null;
+            _trayMenuWindow.Show();
+
+            var screen = _trayMenuWindow.Screens.Primary;
+            if (screen != null)
+            {
+                var area = screen.WorkingArea;
+                _trayMenuWindow.Position = new PixelPoint(
+                    area.Right - (int)_trayMenuWindow.ClientSize.Width - 12,
+                    area.Bottom - (int)_trayMenuWindow.ClientSize.Height - 12);
             }
         });
     }
@@ -150,7 +186,7 @@ public class TrayService
         return null;
     }
 
-    private async Task UpdateStatusesAsync(NativeMenu menu)
+    private async Task UpdateStatusesAsync()
     {
         try
         {
@@ -164,7 +200,7 @@ public class TrayService
                 }
 
                 var appStatus = new TrayApp.Shared.Models.AppStatus(app.Id, status, DateTime.UtcNow);
-                Avalonia.Threading.Dispatcher.UIThread.Post(() => UpdateStatusForApp(menu, appStatus));
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => UpdateStatusForApp(appStatus));
             }
         }
         catch (Exception ex)
@@ -173,23 +209,33 @@ public class TrayService
         }
     }
 
-    private void UpdateStatusForApp(NativeMenu menu, TrayApp.Shared.Models.AppStatus status)
+    private void UpdateStatusForApp(TrayApp.Shared.Models.AppStatus status)
     {
         try
         {
-            foreach (var item in menu.Items.OfType<NativeMenuItem>())
+            _trayMenuWindow?.UpdateStatus(status.AppId, status.Status);
+            if (_nativeMenu == null)
             {
-                if (item.Menu is NativeMenu sub)
+                return;
+            }
+
+            foreach (var item in _nativeMenu.Items.OfType<NativeMenuItem>())
+            {
+                if (item.Menu is not NativeMenu submenu)
                 {
-                    var appName = item.Header?.ToString();
-                    var app = _registry.Apps.FirstOrDefault(a => a.Name == appName);
-                    if (app == null) continue;
-                    if (app.Id != status.AppId) continue;
-                    var statusItem = sub.Items.OfType<NativeMenuItem>().LastOrDefault();
-                    if (statusItem != null)
-                    {
-                        statusItem.Header = $"Status: {status.Status}";
-                    }
+                    continue;
+                }
+
+                var app = _registry.Apps.FirstOrDefault(a => a.Name == item.Header?.ToString());
+                if (app?.Id != status.AppId)
+                {
+                    continue;
+                }
+
+                var statusItem = submenu.Items.OfType<NativeMenuItem>().LastOrDefault();
+                if (statusItem != null)
+                {
+                    statusItem.Header = $"Status: {status.Status}";
                 }
             }
         }

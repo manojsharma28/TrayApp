@@ -2,6 +2,16 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="TrayApp.UI.App">
+    <Application.Resources>
+        <SolidColorBrush x:Key="PageBackgroundBrush" Color="#111820" />
+        <SolidColorBrush x:Key="PanelBackgroundBrush" Color="#19232D" />
+        <SolidColorBrush x:Key="PanelBorderBrush" Color="#2B3A47" />
+        <SolidColorBrush x:Key="PrimaryTextBrush" Color="#F2F6F8" />
+        <SolidColorBrush x:Key="SecondaryTextBrush" Color="#9EAFBA" />
+        <SolidColorBrush x:Key="AccentBrush" Color="#36C5B1" />
+        <SolidColorBrush x:Key="AccentHoverBrush" Color="#48D8C3" />
+        <SolidColorBrush x:Key="InputBackgroundBrush" Color="#10171E" />
+    </Application.Resources>
     <Application.Styles>
         <FluentTheme DensityStyle="Compact" />
     </Application.Styles>

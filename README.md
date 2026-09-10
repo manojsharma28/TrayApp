@@ -40,6 +40,17 @@ Linux Bash: `Scripts/run-all.sh` (requires `jq` to parse JSON)
 Configuration file: `Config/appRegistry.json` (see example in repo)
 ```
 
+## Customize the UI
+
+The Avalonia UI has three separate customization points:
+
+- `src/TrayApp.UI/App.axaml` contains the shared theme resources. Update the brushes named `PageBackgroundBrush`, `PanelBackgroundBrush`, `PrimaryTextBrush`, `SecondaryTextBrush`, `AccentBrush`, and `InputBackgroundBrush` to change the application palette.
+- `src/TrayApp.UI/Views/SettingsWindow.axaml` contains the settings page layout and its local control styles. Change the window dimensions, typography, spacing, labels, endpoint fields, and save button there. Keep the control names `PubEndpoint`, `SubEndpoint`, and `SaveButton` unless you also update `SettingsWindow.axaml.cs`.
+- `src/TrayApp.UI/Services/TrayService.cs` connects the tray icon to the custom menu and owns the tray commands.
+- `src/TrayApp.UI/Views/TrayMenuWindow.axaml` contains the custom tray menu layout and styles. Update its brushes, spacing, typography, and button styles to change the menu appearance. Its code-behind, `TrayMenuWindow.axaml.cs`, creates the managed application rows and updates their status labels.
+
+The settings page and left-click tray menu are rendered by Avalonia, so their brushes and control styles can share the application theme. The custom tray menu is compact, borderless, positioned near the bottom-right working area, and closes when it loses focus. The native OS context menu is also retained for the tray's native context-menu interaction; it uses the same labels and commands, but its colors, typography, padding, and hover treatment still follow the host OS.
+
 Notes:
 - Projects contain stub implementations; wire `IMessageRouter` and `IProcessManager` concrete registrations in `Program.cs` as needed.
 - `Directory.Build.props` enforces `net8.0` and package versions.

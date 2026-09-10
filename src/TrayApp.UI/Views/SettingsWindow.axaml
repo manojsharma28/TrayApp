@@ -3,18 +3,105 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="TrayApp.UI.Views.SettingsWindow"
         Title="TrayApp Settings"
-        Width="400" Height="300">
-  <StackPanel Margin="12">
-    <TextBlock Text="Settings" FontSize="18" />
-    <TextBlock Text="ZeroMQ Endpoints" Margin="0,12,0,0" />
-    <StackPanel Orientation="Horizontal">
-      <TextBlock Text="Pub:" Width="40" />
-      <TextBox Name="PubEndpoint" Width="300" />
+        Width="560" Height="430"
+        MinWidth="480" MinHeight="380"
+        Background="{DynamicResource PageBackgroundBrush}"
+        WindowStartupLocation="CenterScreen"
+        CanResize="False">
+  <Window.Styles>
+    <Style Selector="TextBox.endpoint">
+      <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource PanelBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="Padding" Value="12,9" />
+      <Setter Property="MinHeight" Value="42" />
+    </Style>
+    <Style Selector="Button.save-button">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="#071614" />
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Padding" Value="22,10" />
+      <Setter Property="MinWidth" Value="104" />
+      <Setter Property="MinHeight" Value="42" />
+    </Style>
+    <Style Selector="Button.save-button:pointerover">
+      <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+    </Style>
+  </Window.Styles>
+
+  <Grid RowDefinitions="Auto,*,Auto" Margin="30,26,30,22">
+    <StackPanel Spacing="5">
+      <TextBlock Text="TRAYAPPMANAGER"
+                 FontSize="11"
+                 FontWeight="Bold"
+                 Foreground="{DynamicResource AccentBrush}"
+                 LetterSpacing="1.8" />
+      <TextBlock Text="Settings"
+                 FontSize="30"
+                 FontWeight="SemiBold"
+                 Foreground="{DynamicResource PrimaryTextBrush}" />
+      <TextBlock Text="Configure the local messaging endpoints used by managed apps."
+                 FontSize="13"
+                 Foreground="{DynamicResource SecondaryTextBrush}"
+                 Margin="0,3,0,0" />
     </StackPanel>
-    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-      <TextBlock Text="Sub:" Width="40" />
-      <TextBox Name="SubEndpoint" Width="300" />
-    </StackPanel>
-    <Button Name="SaveButton" Content="Save" HorizontalAlignment="Right" Margin="0,12,0,0" />
-  </StackPanel>
+
+    <Border Grid.Row="1"
+            Background="{DynamicResource PanelBackgroundBrush}"
+            BorderBrush="{DynamicResource PanelBorderBrush}"
+            BorderThickness="1"
+            CornerRadius="10"
+            Padding="20"
+            Margin="0,24,0,20">
+      <StackPanel Spacing="18">
+        <StackPanel Spacing="3">
+          <TextBlock Text="ZeroMQ endpoints"
+                     FontSize="17"
+                     FontWeight="SemiBold"
+                     Foreground="{DynamicResource PrimaryTextBrush}" />
+          <TextBlock Text="These addresses are persisted to the app registry."
+                     FontSize="12"
+                     Foreground="{DynamicResource SecondaryTextBrush}" />
+        </StackPanel>
+
+        <Grid ColumnDefinitions="96,*" RowDefinitions="Auto,Auto">
+          <TextBlock Text="Publisher"
+                     VerticalAlignment="Center"
+                     Foreground="{DynamicResource SecondaryTextBrush}"
+                     FontSize="13" />
+          <TextBox Grid.Column="1"
+                   Name="PubEndpoint"
+                   Classes="endpoint"
+                   Watermark="tcp://127.0.0.1:5556" />
+
+          <TextBlock Grid.Row="1"
+                     Text="Subscriber"
+                     VerticalAlignment="Center"
+                     Foreground="{DynamicResource SecondaryTextBrush}"
+                     FontSize="13"
+                     Margin="0,14,0,0" />
+          <TextBox Grid.Row="1"
+                   Grid.Column="1"
+                   Name="SubEndpoint"
+                   Classes="endpoint"
+                   Watermark="tcp://127.0.0.1:5557"
+                   Margin="0,14,0,0" />
+        </Grid>
+      </StackPanel>
+    </Border>
+
+    <Grid Grid.Row="2" ColumnDefinitions="*,Auto">
+      <TextBlock Text="Changes apply the next time services connect."
+                 VerticalAlignment="Center"
+                 FontSize="11"
+                 Foreground="{DynamicResource SecondaryTextBrush}" />
+      <Button Grid.Column="1"
+              Name="SaveButton"
+              Classes="save-button"
+              Content="Save changes" />
+    </Grid>
+  </Grid>
 </Window>
