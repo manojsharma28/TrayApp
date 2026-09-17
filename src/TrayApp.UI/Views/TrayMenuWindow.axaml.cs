@@ -28,12 +28,12 @@ public partial class TrayMenuWindow : Window
         _quit = quit;
         InitializeComponent();
 
-        foreach (var app in registry.Apps)
+        foreach (var app in registry.Apps.Where(app => !app.IsHidden && !string.IsNullOrWhiteSpace(app.Id) && !string.IsNullOrWhiteSpace(app.Name)))
         {
             AddAppItem(app);
         }
 
-        if (!registry.Apps.Any())
+        if (!registry.Apps.Any(app => !app.IsHidden && !string.IsNullOrWhiteSpace(app.Id) && !string.IsNullOrWhiteSpace(app.Name)))
         {
             AppItemsPanel.Children.Add(new TextBlock
             {
@@ -67,6 +67,11 @@ public partial class TrayMenuWindow : Window
 
     private void AddAppItem(TrayApp.Shared.Models.AppInfo app)
     {
+        if (string.IsNullOrWhiteSpace(app.Id) || string.IsNullOrWhiteSpace(app.Name))
+        {
+            return;
+        }
+
         var status = new TextBlock
         {
             Text = "UNKNOWN",
@@ -79,7 +84,7 @@ public partial class TrayMenuWindow : Window
 
         var start = new Button
         {
-            Content = "Start",
+            Content = MenuButtonText("Start"),
             Classes = { "menu-action" },
             HorizontalContentAlignment = HorizontalAlignment.Left
         };
@@ -91,7 +96,7 @@ public partial class TrayMenuWindow : Window
 
         var stop = new Button
         {
-            Content = "Stop",
+            Content = MenuButtonText("Stop"),
             Classes = { "menu-action" },
             HorizontalContentAlignment = HorizontalAlignment.Left
         };
@@ -126,5 +131,15 @@ public partial class TrayMenuWindow : Window
         Grid.SetColumnSpan(actions, 2);
         row.Children.Add(actions);
         AppItemsPanel.Children.Add(row);
+    }
+
+    private static TextBlock MenuButtonText(string text)
+    {
+        return new TextBlock
+        {
+            Text = text,
+            Foreground = (IBrush)Application.Current!.FindResource("PrimaryTextBrush")!,
+            FontSize = 13
+        };
     }
 }

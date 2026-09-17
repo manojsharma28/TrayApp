@@ -6,26 +6,70 @@ namespace TrayApp.Shared.Services;
 
 public class AppRegistryService : IAppRegistry
 {
-    private readonly AppRegistry _registry;
-    private readonly string? _configPath;
+    private readonly AppConfiguration _registry;
+    private readonly IConfigurationService _configurationService;
 
     public AppRegistryService()
+        : this(new JsonConfigurationService())
     {
-        _configPath = ResolveConfigPath();
-        if (!string.IsNullOrEmpty(_configPath) && File.Exists(_configPath))
-        {
-            _registry = LoadRegistry(_configPath);
-        }
-        else
-        {
-            _registry = new AppRegistry();
-        }
+    }
+
+    public AppRegistryService(IConfigurationService configurationService)
+    {
+        _configurationService = configurationService;
+        _registry = _configurationService.Load();
     }
 
     public IReadOnlyList<AppInfo> Apps => _registry.Apps;
     public string PubEndpoint => _registry.ZeroMq.PubEndpoint;
     public string SubEndpoint => _registry.ZeroMq.SubEndpoint;
     public AppInfo? GetApp(string appId) => _registry.Apps.FirstOrDefault(a => string.Equals(a.Id, appId, StringComparison.OrdinalIgnoreCase));
+
+    public void AddApp(AppInfo app)
+    {
+        var id = app.Id.Trim();
+        if (string.IsNullOrWhiteSpace(id) || GetApp(id) != null)
+            throw new InvalidOperationException("Application id must be unique and non-empty.");
+
+        _registry.Apps.Add(app with
+        {
+            Id = id,
+            Name = string.IsNullOrWhiteSpace(app.Name) ? id : app.Name.Trim(),
+            Category = string.IsNullOrWhiteSpace(app.Category) ? "Services" : app.Category.Trim()
+        });
+        SaveRegistry();
+    }
+
+    public bool RemoveApp(string appId)
+    {
+        var app = GetApp(appId);
+        if (app == null) return false;
+        _registry.Apps.Remove(app);
+        SaveRegistry();
+        return true;
+    }
+
+    public void UpdateApp(AppInfo app)
+    {
+        var index = _registry.Apps.FindIndex(a => string.Equals(a.Id, app.Id, StringComparison.OrdinalIgnoreCase));
+        if (index < 0) throw new InvalidOperationException("Application was not found.");
+
+        _registry.Apps[index] = app with
+        {
+            Id = app.Id.Trim(),
+            Name = string.IsNullOrWhiteSpace(app.Name) ? app.Id.Trim() : app.Name.Trim(),
+            Category = string.IsNullOrWhiteSpace(app.Category) ? "Services" : app.Category.Trim()
+        };
+        SaveRegistry();
+    }
+
+    public void SetHidden(string appId, bool hidden)
+    {
+        var index = _registry.Apps.FindIndex(a => string.Equals(a.Id, appId, StringComparison.OrdinalIgnoreCase));
+        if (index < 0) return;
+        _registry.Apps[index] = _registry.Apps[index] with { IsHidden = hidden };
+        SaveRegistry();
+    }
 
     public void UpdateZeroMqEndpoints(string pubEndpoint, string subEndpoint)
     {
@@ -34,21 +78,12 @@ public class AppRegistryService : IAppRegistry
 
         _registry.ZeroMq = new ZeroMqConfig(cleanPub, cleanSub);
 
-        if (!string.IsNullOrWhiteSpace(_configPath) && File.Exists(_configPath))
-        {
-            var json = new
-            {
-                apps = _registry.Apps,
-                zeromq = new
-                {
-                    pubEndpoint = cleanPub,
-                    subEndpoint = cleanSub
-                }
-            };
+        SaveRegistry();
+    }
 
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            File.WriteAllText(_configPath, JsonSerializer.Serialize(json, options));
-        }
+    private void SaveRegistry()
+    {
+        _configurationService.Save(_registry);
     }
 
     private static string? ResolveConfigPath()
@@ -104,6 +139,8 @@ public class AppRegistryService : IAppRegistry
                     var args = ReadString(item, "args", "Args");
                     var startCommand = ReadString(item, "startCommand", "StartCommand", "start", "Start", "command", "Command");
                     var zmqEndpoint = ReadString(item, "zmqEndpoint", "ZmqEndpoint", "zmq", "Zmq", "endpoint", "Endpoint");
+                    var category = ReadString(item, "category", "Category") ?? "Services";
+                    var hidden = item.TryGetProperty("hidden", out var hiddenValue) && hiddenValue.ValueKind == JsonValueKind.True;
 
                     if (string.IsNullOrWhiteSpace(appId))
                     {
@@ -116,7 +153,9 @@ public class AppRegistryService : IAppRegistry
                         executablePath,
                         args,
                         startCommand,
-                        zmqEndpoint));
+                        zmqEndpoint,
+                        category,
+                        hidden));
                 }
             }
 

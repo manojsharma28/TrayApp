@@ -9,6 +9,7 @@ var host = Host.CreateDefaultBuilder(args)
     {
         services.AddDefaultLogging();
         services.AddSingleton<IAppController, TrayApp.Core.Services.AppController>();
+        services.AddSingleton<TrayApp.Shared.Interfaces.IConfigurationService, TrayApp.Shared.Services.JsonConfigurationService>();
         services.AddSingleton<TrayApp.Shared.Interfaces.IAppRegistry, TrayApp.Shared.Services.AppRegistryService>();
         services.AddSingleton<TrayApp.Shared.Interfaces.IStateTracker, TrayApp.Core.Services.InMemoryStateTracker>();
 

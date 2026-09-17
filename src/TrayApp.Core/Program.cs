@@ -12,6 +12,7 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddSingleton<IStateTracker, TrayApp.Core.Services.InMemoryStateTracker>();
 
         // Registry
+        services.AddSingleton<TrayApp.Shared.Interfaces.IConfigurationService, TrayApp.Shared.Services.JsonConfigurationService>();
         services.AddSingleton<TrayApp.Shared.Interfaces.IAppRegistry, TrayApp.Shared.Services.AppRegistryService>();
 
         // Comms

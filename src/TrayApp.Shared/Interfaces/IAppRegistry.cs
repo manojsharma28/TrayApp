@@ -8,5 +8,9 @@ public interface IAppRegistry
     string PubEndpoint { get; }
     string SubEndpoint { get; }
     AppInfo? GetApp(string appId);
+    void AddApp(AppInfo app);
+    void UpdateApp(AppInfo app);
+    bool RemoveApp(string appId);
+    void SetHidden(string appId, bool hidden);
     void UpdateZeroMqEndpoints(string pubEndpoint, string subEndpoint);
 }

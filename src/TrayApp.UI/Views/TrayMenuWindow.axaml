@@ -14,6 +14,7 @@
     <Style Selector="Button.menu-action">
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="1" />
       <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
       <Setter Property="HorizontalContentAlignment" Value="Left" />
       <Setter Property="Padding" Value="14,11" />
@@ -21,11 +22,32 @@
       <Setter Property="FontSize" Value="13" />
     </Style>
     <Style Selector="Button.menu-action:pointerover">
-      <Setter Property="Background" Value="{DynamicResource PanelBorderBrush}" />
+      <Setter Property="Background" Value="#344B59" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="#FFFFFF" />
+    </Style>
+    <Style Selector="Button.menu-action:pressed">
+      <Setter Property="Background" Value="#1C2A33" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="#FFFFFF" />
     </Style>
     <Style Selector="Button.menu-action.accent">
       <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
       <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.menu-action.accent:pointerover">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="#071614" />
+    </Style>
+    <Style Selector="Button.menu-action.accent:pressed">
+      <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="#071614" />
     </Style>
   </Window.Styles>
 
@@ -37,7 +59,7 @@
     <StackPanel Spacing="8">
       <Grid ColumnDefinitions="*,Auto" Margin="6,4,6,8">
         <StackPanel Spacing="3">
-          <TextBlock Text="TRAYAPPMANAGER"
+          <TextBlock Text="AppHive"
                      FontSize="10"
                      FontWeight="Bold"
                      Foreground="{DynamicResource AccentBrush}"
@@ -61,17 +83,19 @@
               BorderThickness="1"
               CornerRadius="8"
               Padding="6">
-        <StackPanel Name="AppItemsPanel" Spacing="2" />
+        <ScrollViewer MaxHeight="420" VerticalScrollBarVisibility="Auto">
+          <StackPanel Name="AppItemsPanel" Spacing="2" />
+        </ScrollViewer>
       </Border>
 
       <Border Height="1" Background="{DynamicResource PanelBorderBrush}" Margin="4,2" />
 
       <Button Name="SettingsButton"
               Classes="menu-action accent"
-              Content="Open settings" />
+              Content="Manage applications" />
       <Button Name="ExitButton"
-              Classes="menu-action"
-              Content="Quit TrayAppManager" />
+              Classes="menu-action accent"
+              Content="Quit AppHive" />
     </StackPanel>
   </Border>
 </Window>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="TrayApp.UI.Views.ManageWindow"
+        Title="AppHive"
+        Width="1080" Height="720"
+        MinWidth="820" MinHeight="560"
+        Background="{DynamicResource PageBackgroundBrush}"
+        WindowStartupLocation="CenterScreen">
+  <Window.Styles>
+    <Style Selector="Button.action">
+      <Setter Property="Background" Value="#263642" />
+      <Setter Property="BorderBrush" Value="#49606D" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="#F2F6F8" />
+      <Setter Property="Padding" Value="12,7" />
+      <Setter Property="MinHeight" Value="34" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+    <Style Selector="Button.action:pointerover">
+      <Setter Property="Background" Value="#344B59" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="#FFFFFF" />
+    </Style>
+    <Style Selector="Button.action:pressed">
+      <Setter Property="Background" Value="#1C2A33" />
+      <Setter Property="Foreground" Value="#FFFFFF" />
+    </Style>
+    <Style Selector="Button.action:disabled">
+      <Setter Property="Background" Value="#202A30" />
+      <Setter Property="BorderBrush" Value="#34434B" />
+      <Setter Property="Foreground" Value="#71818B" />
+    </Style>
+    <Style Selector="Button.primary">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="#071614" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.primary:pointerover">
+      <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+      <Setter Property="Foreground" Value="#071614" />
+    </Style>
+    <Style Selector="ComboBox">
+      <Setter Property="Background" Value="#10171E" />
+      <Setter Property="BorderBrush" Value="#49606D" />
+      <Setter Property="Foreground" Value="#F2F6F8" />
+      <Setter Property="MinHeight" Value="38" />
+    </Style>
+    <Style Selector="TextBox.field">
+      <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource PanelBorderBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+      <Setter Property="Padding" Value="10,8" />
+      <Setter Property="MinHeight" Value="38" />
+      <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="SelectionForegroundBrush" Value="#071614" />
+    </Style>
+  </Window.Styles>
+
+  <Grid RowDefinitions="Auto,Auto,*" Margin="30,26,30,28">
+    <Grid ColumnDefinitions="*,Auto">
+      <StackPanel Spacing="4">
+        <TextBlock Text="AppHive" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" LetterSpacing="1.8" />
+        <TextBlock Text="Manage applications" FontSize="30" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" />
+        <TextBlock Text="Control processes, organize your tray, and keep runtime configuration in one place." FontSize="13" Foreground="{DynamicResource SecondaryTextBrush}" />
+      </StackPanel>
+      <Button Grid.Column="1" Name="RefreshButton" Classes="action" Content="Refresh" ToolTip.Tip="Refresh application status" VerticalAlignment="Center" />
+    </Grid>
+
+    <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,24,0,16">
+    <TextBox Name="SearchBox" Classes="field" Watermark="Search applications..." ToolTip.Tip="Filter by name, ID, or category" />
+      <TextBlock Grid.Column="1" Name="SummaryText" VerticalAlignment="Center" Margin="16,0,0,0" Foreground="{DynamicResource SecondaryTextBrush}" />
+    </Grid>
+
+    <Grid Grid.Row="2" ColumnDefinitions="*,340">
+      <Border Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource PanelBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <StackPanel Name="AppsPanel" Spacing="16" />
+        </ScrollViewer>
+      </Border>
+
+      <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="16">
+          <Border Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource PanelBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="18">
+            <StackPanel Spacing="12">
+              <StackPanel Spacing="3">
+                <TextBlock Name="FormTitle" Text="Add application" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" />
+                <TextBlock Text="Register a process and its messaging endpoint." FontSize="12" Foreground="{DynamicResource SecondaryTextBrush}" />
+              </StackPanel>
+              <TextBox Name="AppIdBox" Classes="field" Watermark="App ID" />
+              <TextBox Name="AppNameBox" Classes="field" Watermark="Display name" />
+              <TextBox Name="CommandBox" Classes="field" Watermark="Start command" />
+              <TextBox Name="EndpointBox" Classes="field" Watermark="ZeroMQ endpoint" />
+              <ComboBox Name="CategoryBox" SelectedIndex="0">
+                <ComboBoxItem Content="Services" />
+                <ComboBoxItem Content="Tools" />
+                <ComboBoxItem Content="Background" />
+              </ComboBox>
+              <TextBlock Name="FormMessage" TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="12" />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Name="AddButton" Classes="action primary" Content="Add application" ToolTip.Tip="Add this application to the registry" />
+                <Button Name="CancelEditButton" Classes="action" Content="Cancel" IsVisible="False" ToolTip.Tip="Cancel editing" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource PanelBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="18">
+            <StackPanel Spacing="12">
+              <StackPanel Spacing="3">
+                <TextBlock Text="Configuration" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" />
+                <TextBlock Text="Global ZeroMQ endpoints" FontSize="12" Foreground="{DynamicResource SecondaryTextBrush}" />
+              </StackPanel>
+              <TextBox Name="PubEndpointBox" Classes="field" Watermark="Publisher endpoint" />
+              <TextBox Name="SubEndpointBox" Classes="field" Watermark="Subscriber endpoint" />
+              <Button Name="SaveConfigButton" Classes="action primary" Content="Save configuration" ToolTip.Tip="Save global ZeroMQ endpoints" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+  </Grid>
+</Window>

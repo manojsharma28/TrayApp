@@ -39,4 +39,11 @@ public class AppController : IAppController
         await _processManager.StopProcessAsync(appId, ct);
         await _router.PublishAsync("control/stop", appId, ct);
     }
+
+    public async Task RestartAsync(string appId, CancellationToken ct = default)
+    {
+        _log.LogInformation("Restarting {appId}", appId);
+        await StopAsync(appId, ct);
+        await StartAsync(appId, ct);
+    }
 }

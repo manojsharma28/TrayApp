@@ -4,4 +4,5 @@ public interface IAppController
 {
     Task StartAsync(string appId, CancellationToken ct = default);
     Task StopAsync(string appId, CancellationToken ct = default);
+    Task RestartAsync(string appId, CancellationToken ct = default);
 }

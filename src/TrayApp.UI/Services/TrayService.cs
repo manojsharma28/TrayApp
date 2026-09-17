@@ -21,6 +21,7 @@ public class TrayService
     private readonly TrayApp.Shared.Interfaces.IStateTracker? _tracker;
     private TrayIcon? _trayIcon;
     private Views.SettingsWindow? _settingsWindow;
+    private Views.ManageWindow? _manageWindow;
     private Views.TrayMenuWindow? _trayMenuWindow;
     private NativeMenu? _nativeMenu;
 
@@ -43,7 +44,7 @@ public class TrayService
                 var icon = LoadTrayIcon();
                 var tray = new TrayIcon
                 {
-                    ToolTipText = "TrayAppManager",
+                    ToolTipText = "AppHive",
                     Icon = icon,
                     IsVisible = true
                 };
@@ -51,7 +52,17 @@ public class TrayService
                 _nativeMenu = BuildNativeMenu(desktop);
                 tray.Menu = _nativeMenu;
 
-                tray.Clicked += (s, e) => ShowTrayMenu(desktop);
+                tray.Clicked += (s, e) =>
+                {
+                    try
+                    {
+                        ShowTrayMenu(desktop);
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.LogError(ex, "Failed to open tray menu");
+                    }
+                };
 
                 // subscribe to state tracker updates if available
                 if (_tracker != null)
@@ -72,7 +83,8 @@ public class TrayService
     {
         var menu = new NativeMenu();
 
-        if (!_registry.Apps.Any())
+        var trayApps = _registry.Apps.Where(app => !app.IsHidden && !string.IsNullOrWhiteSpace(app.Id)).ToList();
+        if (!trayApps.Any())
         {
             var emptyItem = new NativeMenuItem("No managed applications configured")
             {
@@ -82,7 +94,7 @@ public class TrayService
         }
         else
         {
-            foreach (var app in _registry.Apps)
+            foreach (var app in trayApps.Where(app => !string.IsNullOrWhiteSpace(app.Name)))
             {
                 var appItem = new NativeMenuItem(app.Name);
                 var submenu = new NativeMenu();
@@ -102,10 +114,10 @@ public class TrayService
         }
 
         menu.Items.Add(new NativeMenuItemSeparator());
-        var settingsItem = new NativeMenuItem("Open settings");
-        settingsItem.Click += (_, _) => ShowSettingsWindow();
+        var settingsItem = new NativeMenuItem("Manage applications");
+        settingsItem.Click += (_, _) => ShowManageWindow();
         menu.Items.Add(settingsItem);
-        var exitItem = new NativeMenuItem("Quit TrayAppManager");
+        var exitItem = new NativeMenuItem("Quit AppHive");
         exitItem.Click += (_, _) => desktop.Shutdown();
         menu.Items.Add(exitItem);
         return menu;
@@ -129,34 +141,67 @@ public class TrayService
         });
     }
 
+    private void ShowManageWindow()
+    {
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            if (_manageWindow is null || !_manageWindow.IsVisible)
+            {
+                _manageWindow = new Views.ManageWindow(_registry, _controller, _processManager, _tracker);
+                _manageWindow.Closed += (_, _) => _manageWindow = null;
+                _manageWindow.Show();
+            }
+            else
+            {
+                _manageWindow.Activate();
+            }
+        });
+    }
+
     private void ShowTrayMenu(IClassicDesktopStyleApplicationLifetime desktop)
     {
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
-            if (_trayMenuWindow?.IsVisible == true)
+            try
             {
-                _trayMenuWindow.Close();
-                return;
+                if (_trayMenuWindow?.IsVisible == true)
+                {
+                    _trayMenuWindow.Close();
+                    return;
+                }
+
+                _trayMenuWindow = new Views.TrayMenuWindow(
+                    _registry,
+                    _controller,
+                    _processManager,
+                    ShowManageWindow,
+                    () => desktop.Shutdown());
+                _trayMenuWindow.Closed += (_, _) => _trayMenuWindow = null;
+                _trayMenuWindow.Show();
+
+                // Reposition after the first layout pass so the popup is never clipped.
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => PositionTrayMenu(_trayMenuWindow));
             }
-
-            _trayMenuWindow = new Views.TrayMenuWindow(
-                _registry,
-                _controller,
-                _processManager,
-                ShowSettingsWindow,
-                () => desktop.Shutdown());
-            _trayMenuWindow.Closed += (_, _) => _trayMenuWindow = null;
-            _trayMenuWindow.Show();
-
-            var screen = _trayMenuWindow.Screens.Primary;
-            if (screen != null)
+            catch (Exception ex)
             {
-                var area = screen.WorkingArea;
-                _trayMenuWindow.Position = new PixelPoint(
-                    area.Right - (int)_trayMenuWindow.ClientSize.Width - 12,
-                    area.Bottom - (int)_trayMenuWindow.ClientSize.Height - 12);
+                _log.LogError(ex, "Failed to render tray menu");
             }
         });
+    }
+
+    private void PositionTrayMenu(Views.TrayMenuWindow? window)
+    {
+        if (window?.IsVisible != true) return;
+
+        var screen = window.Screens.Primary;
+        if (screen == null) return;
+
+        var area = screen.WorkingArea;
+        var width = Math.Max((int)window.ClientSize.Width, 320);
+        var height = (int)window.ClientSize.Height;
+        var x = Math.Clamp(area.Right - width - 12, area.X + 12, area.Right - width - 12);
+        var y = Math.Clamp(area.Bottom - height - 12, area.Y + 12, area.Bottom - height - 12);
+        window.Position = new PixelPoint(x, y);
     }
 
     private WindowIcon? LoadTrayIcon()
