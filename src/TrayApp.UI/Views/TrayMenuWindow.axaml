@@ -2,7 +2,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="TrayApp.UI.Views.TrayMenuWindow"
-        Width="320"
+        Width="360"
         Background="{DynamicResource PageBackgroundBrush}"
         ShowInTaskbar="False"
         SystemDecorations="None"
@@ -11,44 +11,42 @@
         ShowActivated="True"
         WindowStartupLocation="Manual">
   <Window.Styles>
-    <Style Selector="Button.menu-action">
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="BorderBrush" Value="Transparent" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
-      <Setter Property="HorizontalContentAlignment" Value="Left" />
-      <Setter Property="Padding" Value="14,11" />
-      <Setter Property="MinHeight" Value="44" />
-      <Setter Property="FontSize" Value="13" />
-    </Style>
-    <Style Selector="Button.menu-action:pointerover">
-      <Setter Property="Background" Value="#344B59" />
-      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="Foreground" Value="#FFFFFF" />
-    </Style>
-    <Style Selector="Button.menu-action:pressed">
-      <Setter Property="Background" Value="#1C2A33" />
-      <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="Foreground" Value="#FFFFFF" />
-    </Style>
-    <Style Selector="Button.menu-action.accent">
-      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
-      <Setter Property="FontWeight" Value="SemiBold" />
-    </Style>
-    <Style Selector="Button.menu-action.accent:pointerover">
-      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="Foreground" Value="#071614" />
-    </Style>
-    <Style Selector="Button.menu-action.accent:pressed">
-      <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="Foreground" Value="#071614" />
-    </Style>
+          <Style Selector="Button.menu-action">
+            <Setter Property="Background" Value="{DynamicResource PanelBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PanelBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="Template">
+        <ControlTemplate>
+          <Border Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="4"
+                  Padding="{TemplateBinding Padding}">
+            <ContentPresenter Content="{TemplateBinding Content}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+          </Border>
+        </ControlTemplate>
+              </Setter>
+          </Style>
+          <Style Selector="Button.menu-action:pointerover">
+            <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+          </Style>
+          <Style Selector="Button.menu-action:pressed">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+          </Style>
+          <Style Selector="Button.menu-action:pointerover TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+          </Style>
+          <Style Selector="Button.menu-action:pressed TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+          </Style>
   </Window.Styles>
 
   <Border Background="{DynamicResource PanelBackgroundBrush}"

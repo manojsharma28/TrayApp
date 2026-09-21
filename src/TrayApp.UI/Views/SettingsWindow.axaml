@@ -32,7 +32,18 @@
     </Style>
     <Style Selector="Button.save-button:pointerover">
       <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
-      <Setter Property="Foreground" Value="#071614" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="Button.save-button:pointerover TextBlock">
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="Button.save-button:pressed">
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="Button.save-button:pressed TextBlock">
+      <Setter Property="Foreground" Value="White" />
     </Style>
   </Window.Styles>
 

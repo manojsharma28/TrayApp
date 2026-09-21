@@ -93,6 +93,7 @@ public partial class TrayMenuWindow : Window
             await _controller.StartAsync(app.Id);
             UpdateStatus(app.Id, "starting");
         };
+        ApplyMenuButtonHover(start);
 
         var stop = new Button
         {
@@ -105,6 +106,7 @@ public partial class TrayMenuWindow : Window
             await _controller.StopAsync(app.Id);
             UpdateStatus(app.Id, "stopping");
         };
+        ApplyMenuButtonHover(stop);
 
         var actions = new StackPanel
         {
@@ -131,6 +133,40 @@ public partial class TrayMenuWindow : Window
         Grid.SetColumnSpan(actions, 2);
         row.Children.Add(actions);
         AppItemsPanel.Children.Add(row);
+    }
+
+    private static void ApplyMenuButtonHover(Button button)
+    {
+        var application = Application.Current!;
+        var normalBackground = (IBrush)application.FindResource("PanelBackgroundBrush")!;
+        var normalBorder = (IBrush)application.FindResource("PanelBorderBrush")!;
+        var normalForeground = (IBrush)application.FindResource("PrimaryTextBrush")!;
+        var hoverBackground = (IBrush)application.FindResource("AccentHoverBrush")!;
+        var hoverBorder = (IBrush)application.FindResource("AccentBrush")!;
+        var hoverForeground = Brushes.White;
+
+        button.PointerEntered += (_, _) =>
+        {
+            button.Background = hoverBackground;
+            button.BorderBrush = hoverBorder;
+            button.BorderThickness = new Avalonia.Thickness(1);
+            button.Foreground = hoverForeground;
+            if (button.Content is TextBlock text)
+            {
+                text.Foreground = hoverForeground;
+            }
+        };
+        button.PointerExited += (_, _) =>
+        {
+            button.Background = normalBackground;
+            button.BorderBrush = normalBorder;
+            button.BorderThickness = new Avalonia.Thickness(1);
+            button.Foreground = normalForeground;
+            if (button.Content is TextBlock text)
+            {
+                text.Foreground = normalForeground;
+            }
+        };
     }
 
     private static TextBlock MenuButtonText(string text)

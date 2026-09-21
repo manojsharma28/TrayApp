@@ -199,7 +199,7 @@ public class TrayService
         var area = screen.WorkingArea;
         var width = Math.Max((int)window.ClientSize.Width, 320);
         var height = (int)window.ClientSize.Height;
-        var x = Math.Clamp(area.Right - width - 12, area.X + 12, area.Right - width - 12);
+        var x = area.Right - width - 80;// Math.Clamp(area.Right - width - 12 + 50, area.X + 12, area.Right - width - 12);
         var y = Math.Clamp(area.Bottom - height - 12, area.Y + 12, area.Bottom - height - 12);
         window.Position = new PixelPoint(x, y);
     }

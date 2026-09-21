@@ -16,14 +16,37 @@
       <Setter Property="Padding" Value="12,7" />
       <Setter Property="MinHeight" Value="34" />
       <Setter Property="FontSize" Value="12" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="4"
+                  Padding="{TemplateBinding Padding}">
+            <ContentPresenter Content="{TemplateBinding Content}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+          </Border>
+        </ControlTemplate>
+      </Setter>
     </Style>
     <Style Selector="Button.action:pointerover">
       <Setter Property="Background" Value="#344B59" />
       <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
       <Setter Property="Foreground" Value="#FFFFFF" />
+       <Setter Property="BorderThickness" Value="1" />
     </Style>
     <Style Selector="Button.action:pressed">
       <Setter Property="Background" Value="#1C2A33" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="#FFFFFF" />
+    </Style>
+    <Style Selector="Button.action:pointerover TextBlock">
+      <Setter Property="Foreground" Value="#FFFFFF" />
+    </Style>
+    <Style Selector="Button.action:pressed TextBlock">
       <Setter Property="Foreground" Value="#FFFFFF" />
     </Style>
     <Style Selector="Button.action:disabled">
@@ -38,24 +61,15 @@
     </Style>
     <Style Selector="Button.primary:pointerover">
       <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
-      <Setter Property="Foreground" Value="#071614" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="White" />
     </Style>
     <Style Selector="ComboBox">
       <Setter Property="Background" Value="#10171E" />
       <Setter Property="BorderBrush" Value="#49606D" />
       <Setter Property="Foreground" Value="#F2F6F8" />
       <Setter Property="MinHeight" Value="38" />
-    </Style>
-    <Style Selector="TextBox.field">
-      <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource PanelBorderBrush}" />
-      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
-      <Setter Property="Padding" Value="10,8" />
-      <Setter Property="MinHeight" Value="38" />
-      <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}" />
-      <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}" />
-      <Setter Property="SelectionForegroundBrush" Value="#071614" />
-    </Style>
+    </Style>   
   </Window.Styles>
 
   <Grid RowDefinitions="Auto,Auto,*" Margin="30,26,30,28">
@@ -69,7 +83,21 @@
     </Grid>
 
     <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,24,0,16">
-    <TextBox Name="SearchBox" Classes="field" Watermark="Search applications..." ToolTip.Tip="Filter by name, ID, or category" />
+      <Grid>
+        <TextBox Name="SearchBox"
+                 Classes="field"
+                 Watermark="Search applications..."
+                 ToolTip.Tip="Filter by name, ID, or category"
+                 Padding="12,9,42,9" />
+        <PathIcon Data="M11.5,2 A9.5,9.5 0,1,0 17.8,18.6 L22,22.8 L23.4,21.4 L19.2,17.2 A9.5,9.5 0,0,0 11.5,2 Z M11.5,5 A6.5,6.5 0,1,1 11.5,18 A6.5,6.5 0,0,1 11.5,5 Z"
+                  Width="17"
+                  Height="17"
+                  Margin="0,0,14,0"
+                  HorizontalAlignment="Right"
+                  VerticalAlignment="Center"
+                  Foreground="{DynamicResource SecondaryTextBrush}"
+                  IsHitTestVisible="False" />
+      </Grid>
       <TextBlock Grid.Column="1" Name="SummaryText" VerticalAlignment="Center" Margin="16,0,0,0" Foreground="{DynamicResource SecondaryTextBrush}" />
     </Grid>
 

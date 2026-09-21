@@ -29,6 +29,10 @@ public partial class ManageWindow : Window
 
         PubEndpointBox.Text = registry.PubEndpoint;
         SubEndpointBox.Text = registry.SubEndpoint;
+        ApplyStaticButtonHover(RefreshButton, isPrimary: false);
+        ApplyStaticButtonHover(AddButton, isPrimary: true);
+        ApplyStaticButtonHover(CancelEditButton, isPrimary: false);
+        ApplyStaticButtonHover(SaveConfigButton, isPrimary: true);
         SearchBox.TextChanged += (_, _) => RenderApps();
         RefreshButton.Click += async (_, _) => await RefreshStatusesAsync();
         AddButton.Click += AddButton_Click;
@@ -38,6 +42,49 @@ public partial class ManageWindow : Window
             tracker.StatusUpdated += status => Avalonia.Threading.Dispatcher.UIThread.Post(() => SetStatus(status.AppId, status.Status));
         RenderApps();
         _ = RefreshStatusesAsync();
+    }
+
+    private static void ApplyStaticButtonHover(Button button, bool isPrimary)
+    {
+        IBrush normalBackground = isPrimary
+            ? (IBrush)Application.Current!.FindResource("AccentBrush")!
+            : (IBrush)new SolidColorBrush(Color.Parse("#263642"));
+        IBrush hoverBackground = isPrimary
+            ? (IBrush)Application.Current!.FindResource("AccentHoverBrush")!
+            : (IBrush)new SolidColorBrush(Color.Parse("#344B59"));
+        var normalBorder = new SolidColorBrush(Color.Parse("#49606D"));
+        var hoverBorder = (IBrush)Application.Current!.FindResource("AccentBrush")!;
+        IBrush normalForeground = isPrimary
+            ? (IBrush)new SolidColorBrush(Color.Parse("#071614"))
+            : Brushes.White;
+
+        if (button.Content is string text)
+        {
+            button.Content = new TextBlock
+            {
+                Text = text,
+                Foreground = normalForeground
+            };
+        }
+
+        button.PointerEntered += (_, _) =>
+        {
+            button.Background = hoverBackground;
+            button.BorderBrush = hoverBorder;
+            button.BorderThickness = new Thickness(1);
+            button.Foreground = Brushes.White;
+            if (button.Content is TextBlock text)
+            {
+                text.Foreground = Brushes.White;
+            }
+        };
+        button.PointerExited += (_, _) =>
+        {
+            button.Background = normalBackground;
+            button.BorderBrush = normalBorder;
+            button.BorderThickness = new Thickness(1);
+            button.Foreground = normalForeground;
+        };
     }
 
     private void RenderApps()
@@ -136,10 +183,53 @@ public partial class ManageWindow : Window
 
     private Button ActionButton(string text, string tooltip, Func<Task> action)
     {
-        var button = new Button { Content = text, Classes = { "action" } };
+        var button = new Button { Content = ActionButtonText(text), Classes = { "action" } };
         ToolTip.SetTip(button, tooltip);
         button.Click += async (_, _) => await action();
+        ApplyActionButtonHover(button);
         return button;
+    }
+
+    private static void ApplyActionButtonHover(Button button)
+    {
+        var normalBackground = new SolidColorBrush(Color.Parse("#263642"));
+        var normalBorder = new SolidColorBrush(Color.Parse("#49606D"));
+        var normalForeground = new SolidColorBrush(Color.Parse("#F2F6F8"));
+        var hoverBackground = new SolidColorBrush(Color.Parse("#344B59"));
+        var hoverBorder = (IBrush)Application.Current!.FindResource("AccentBrush")!;
+        var hoverForeground = Brushes.White;
+
+        button.PointerEntered += (_, _) =>
+        {
+            button.Background = hoverBackground;
+            button.BorderBrush = hoverBorder;
+            button.BorderThickness = new Thickness(1);
+            button.Foreground = hoverForeground;
+            if (button.Content is TextBlock text)
+            {
+                text.Foreground = hoverForeground;
+            }
+        };
+        button.PointerExited += (_, _) =>
+        {
+            button.Background = normalBackground;
+            button.BorderBrush = normalBorder;
+            button.BorderThickness = new Thickness(1);
+            button.Foreground = normalForeground;
+            if (button.Content is TextBlock text)
+            {
+                text.Foreground = normalForeground;
+            }
+        };
+    }
+
+    private static TextBlock ActionButtonText(string text)
+    {
+        return new TextBlock
+        {
+            Text = text,
+            Foreground = new SolidColorBrush(Color.Parse("#F2F6F8"))
+        };
     }
 
     private async Task RefreshStatusesAsync()
