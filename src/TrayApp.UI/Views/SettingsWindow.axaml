@@ -105,6 +105,10 @@
                    Watermark="tcp://127.0.0.1:5557"
                    Margin="0,14,0,0" />
         </Grid>
+
+        <CheckBox Name="NotificationsEnabled"
+                  Content="Show a Windows notification when an application stops"
+                  Foreground="{DynamicResource PrimaryTextBrush}" />
       </StackPanel>
     </Border>
 

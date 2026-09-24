@@ -17,6 +17,9 @@ public class TrayService
     private readonly IAppController _controller;
     private readonly IProcessManager _processManager;
     private readonly ILogger<TrayService> _log;
+    private readonly WindowsToastNotificationService _toastNotifications = new();
+    private readonly Dictionary<string, string> _lastStatuses = new(StringComparer.OrdinalIgnoreCase);
+    private bool _statusSnapshotReady;
     private Timer? _pollTimer;
     private readonly TrayApp.Shared.Interfaces.IStateTracker? _tracker;
     private TrayIcon? _trayIcon;
@@ -41,7 +44,7 @@ public class TrayService
         {
             if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                var icon = LoadTrayIcon();
+                var icon = AppIconLoader.Load();
                 var tray = new TrayIcon
                 {
                     ToolTipText = "AppHive",
@@ -204,33 +207,6 @@ public class TrayService
         window.Position = new PixelPoint(x, y);
     }
 
-    private WindowIcon? LoadTrayIcon()
-    {
-        try
-        {
-            var candidates = new[]
-            {
-                Path.Combine(AppContext.BaseDirectory, "Assets", "trayapp-icon.png"),
-                Path.Combine(AppContext.BaseDirectory, "trayapp-icon.png"),
-                Path.Combine(Directory.GetCurrentDirectory(), "Assets", "trayapp-icon.png")
-            };
-
-            foreach (var path in candidates)
-            {
-                if (File.Exists(path))
-                {
-                    return new WindowIcon(path);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            _log.LogWarning(ex, "Unable to load tray icon asset.");
-        }
-
-        return null;
-    }
-
     private async Task UpdateStatusesAsync()
     {
         try
@@ -247,6 +223,8 @@ public class TrayService
                 var appStatus = new TrayApp.Shared.Models.AppStatus(app.Id, status, DateTime.UtcNow);
                 Avalonia.Threading.Dispatcher.UIThread.Post(() => UpdateStatusForApp(appStatus));
             }
+
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => _statusSnapshotReady = true);
         }
         catch (Exception ex)
         {
@@ -258,6 +236,19 @@ public class TrayService
     {
         try
         {
+            var currentStatus = status.Status.Trim().ToLowerInvariant();
+            var isStopped = currentStatus is "stopped" or "not running" or "exited";
+            if (_statusSnapshotReady
+                && _lastStatuses.TryGetValue(status.AppId, out var previousStatus)
+                && previousStatus is not ("stopped" or "not running" or "exited")
+                && isStopped
+                && _registry.NotificationsEnabled)
+            {
+                var appName = _registry.GetApp(status.AppId)?.Name ?? status.AppId;
+                _toastNotifications.ShowApplicationStopped(appName);
+            }
+
+            _lastStatuses[status.AppId] = currentStatus;
             _trayMenuWindow?.UpdateStatus(status.AppId, status.Status);
             if (_nativeMenu == null)
             {

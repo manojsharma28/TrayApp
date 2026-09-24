@@ -16,5 +16,8 @@
   "zeromq": {
     "pubEndpoint": "tcp://127.0.0.1:5556",
     "subEndpoint": "tcp://127.0.0.1:5557"
+  },
+  "notifications": {
+    "enabled": true
   }
 }

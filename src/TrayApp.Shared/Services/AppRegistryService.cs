@@ -23,6 +23,7 @@ public class AppRegistryService : IAppRegistry
     public IReadOnlyList<AppInfo> Apps => _registry.Apps;
     public string PubEndpoint => _registry.ZeroMq.PubEndpoint;
     public string SubEndpoint => _registry.ZeroMq.SubEndpoint;
+    public bool NotificationsEnabled => _registry.Notifications.Enabled;
     public AppInfo? GetApp(string appId) => _registry.Apps.FirstOrDefault(a => string.Equals(a.Id, appId, StringComparison.OrdinalIgnoreCase));
 
     public void AddApp(AppInfo app)
@@ -78,6 +79,12 @@ public class AppRegistryService : IAppRegistry
 
         _registry.ZeroMq = new ZeroMqConfig(cleanPub, cleanSub);
 
+        SaveRegistry();
+    }
+
+    public void SetNotificationsEnabled(bool enabled)
+    {
+        _registry.Notifications.Enabled = enabled;
         SaveRegistry();
     }
 

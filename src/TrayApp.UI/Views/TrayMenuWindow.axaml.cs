@@ -4,6 +4,7 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using TrayApp.Shared.Interfaces;
+using TrayApp.UI.Services;
 
 namespace TrayApp.UI.Views;
 
@@ -27,6 +28,7 @@ public partial class TrayMenuWindow : Window
         _openSettings = openSettings;
         _quit = quit;
         InitializeComponent();
+        Icon = AppIconLoader.Load();
 
         foreach (var app in registry.Apps.Where(app => !app.IsHidden && !string.IsNullOrWhiteSpace(app.Id) && !string.IsNullOrWhiteSpace(app.Name)))
         {

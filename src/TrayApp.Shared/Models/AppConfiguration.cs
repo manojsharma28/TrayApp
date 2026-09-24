@@ -9,4 +9,13 @@ public class AppConfiguration
 
     [JsonPropertyName("zeromq")]
     public ZeroMqConfig ZeroMq { get; set; } = new("tcp://127.0.0.1:5556", "tcp://127.0.0.1:5557");
+
+    [JsonPropertyName("notifications")]
+    public NotificationConfig Notifications { get; set; } = new();
+}
+
+public class NotificationConfig
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
 }

@@ -45,6 +45,7 @@ public sealed class JsonConfigurationService : IConfigurationService
                 })
                 .ToList();
             configuration.ZeroMq ??= new ZeroMqConfig("tcp://127.0.0.1:5556", "tcp://127.0.0.1:5557");
+            configuration.Notifications ??= new NotificationConfig();
             return configuration;
         }
         catch

@@ -1,0 +1,12 @@
+global using Application = Avalonia.Application;
+global using Button = Avalonia.Controls.Button;
+global using CheckBox = Avalonia.Controls.CheckBox;
+global using Control = Avalonia.Controls.Control;
+global using TextBox = Avalonia.Controls.TextBox;
+global using ToolTip = Avalonia.Controls.ToolTip;
+global using Color = Avalonia.Media.Color;
+global using Brushes = Avalonia.Media.Brushes;
+global using Cursor = Avalonia.Input.Cursor;
+global using HorizontalAlignment = Avalonia.Layout.HorizontalAlignment;
+global using Orientation = Avalonia.Layout.Orientation;
+global using Timer = System.Threading.Timer;

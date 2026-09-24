@@ -8,6 +8,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using TrayApp.Shared.Interfaces;
 using TrayApp.Shared.Models;
+using TrayApp.UI.Services;
 
 namespace TrayApp.UI.Views;
 
@@ -26,6 +27,7 @@ public partial class ManageWindow : Window
         _controller = controller;
         _processManager = processManager;
         InitializeComponent();
+        Icon = AppIconLoader.Load();
 
         PubEndpointBox.Text = registry.PubEndpoint;
         SubEndpointBox.Text = registry.SubEndpoint;
