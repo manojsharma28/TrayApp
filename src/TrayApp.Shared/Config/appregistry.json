@@ -11,6 +11,56 @@
       "name": "Notepad",
       "startCommand": "notepad.exe",
       "zmqEndpoint": "tcp://127.0.0.1:5557"
+    },
+    {
+      "appId": "demo-01",
+      "name": "Demo Application 01",
+      "category": "Demo"
+    },
+    {
+      "appId": "demo-02",
+      "name": "Demo Application 02",
+      "category": "Demo"
+    },
+    {
+      "appId": "demo-03",
+      "name": "Demo Application 03",
+      "category": "Demo"
+    },
+    {
+      "appId": "demo-04",
+      "name": "Demo Application 04",
+      "category": "Demo"
+    },
+    {
+      "appId": "demo-05",
+      "name": "Demo Application 05",
+      "category": "Demo"
+    },
+    {
+      "appId": "demo-06",
+      "name": "Demo Application 06",
+      "category": "Demo"
+    },
+    {
+      "appId": "demo-07",
+      "name": "Demo Application 07",
+      "category": "Demo"
+    },
+    {
+      "appId": "demo-08",
+      "name": "Demo Application 08",
+      "category": "Demo"
+    },
+    {
+      "appId": "demo-09",
+      "name": "Demo Application 09",
+      "category": "Demo"
+    },
+    {
+      "appId": "demo-10",
+      "name": "Demo Application 10",
+      "category": "Demo"
     }
   ],
   "zeromq": {
@@ -19,5 +69,6 @@
   },
   "notifications": {
     "enabled": true
-  }
+  },
+  "uiTheme": "natural"
 }

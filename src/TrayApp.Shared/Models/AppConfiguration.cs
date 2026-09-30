@@ -12,6 +12,9 @@ public class AppConfiguration
 
     [JsonPropertyName("notifications")]
     public NotificationConfig Notifications { get; set; } = new();
+
+    [JsonPropertyName("uiTheme")]
+    public string UiTheme { get; set; } = "natural";
 }
 
 public class NotificationConfig

@@ -21,6 +21,8 @@ public partial class ManageWindow : Window
     private readonly Dictionary<string, Ellipse> _statusDots = new();
     private string? _editingAppId;
 
+    public event EventHandler? RegistryChanged;
+
     public ManageWindow(IAppRegistry registry, IAppController controller, IProcessManager processManager, IStateTracker? tracker = null)
     {
         _registry = registry;
@@ -28,14 +30,21 @@ public partial class ManageWindow : Window
         _processManager = processManager;
         InitializeComponent();
         Icon = AppIconLoader.Load();
+        UiThemeService.Apply(registry.UiTheme);
 
         PubEndpointBox.Text = registry.PubEndpoint;
         SubEndpointBox.Text = registry.SubEndpoint;
+        ThemeSelector.SelectedIndex = string.Equals(registry.UiTheme, "blue", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
+        ThemeSelector.SelectionChanged += (_, _) =>
+        {
+            var theme = (ThemeSelector.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "natural";
+            _registry.SetUiTheme(theme);
+            UiThemeService.Apply(theme);
+        };
         ApplyStaticButtonHover(RefreshButton, isPrimary: false);
         ApplyStaticButtonHover(AddButton, isPrimary: true);
         ApplyStaticButtonHover(CancelEditButton, isPrimary: false);
         ApplyStaticButtonHover(SaveConfigButton, isPrimary: true);
-        SearchBox.TextChanged += (_, _) => RenderApps();
         RefreshButton.Click += async (_, _) => await RefreshStatusesAsync();
         AddButton.Click += AddButton_Click;
         CancelEditButton.Click += (_, _) => ResetForm();
@@ -48,17 +57,8 @@ public partial class ManageWindow : Window
 
     private static void ApplyStaticButtonHover(Button button, bool isPrimary)
     {
-        IBrush normalBackground = isPrimary
-            ? (IBrush)Application.Current!.FindResource("AccentBrush")!
-            : (IBrush)new SolidColorBrush(Color.Parse("#263642"));
-        IBrush hoverBackground = isPrimary
-            ? (IBrush)Application.Current!.FindResource("AccentHoverBrush")!
-            : (IBrush)new SolidColorBrush(Color.Parse("#344B59"));
-        var normalBorder = new SolidColorBrush(Color.Parse("#49606D"));
-        var hoverBorder = (IBrush)Application.Current!.FindResource("AccentBrush")!;
-        IBrush normalForeground = isPrimary
-            ? (IBrush)new SolidColorBrush(Color.Parse("#071614"))
-            : Brushes.White;
+        var application = Application.Current!;
+        var normalForeground = isPrimary ? Brushes.White : (IBrush)application.FindResource("PrimaryTextBrush")!;
 
         if (button.Content is string text)
         {
@@ -71,8 +71,8 @@ public partial class ManageWindow : Window
 
         button.PointerEntered += (_, _) =>
         {
-            button.Background = hoverBackground;
-            button.BorderBrush = hoverBorder;
+            button.Background = (IBrush)application.FindResource(isPrimary ? "AccentHoverBrush" : "ActionHoverBrush")!;
+            button.BorderBrush = (IBrush)application.FindResource("AccentBrush")!;
             button.BorderThickness = new Thickness(1);
             button.Foreground = Brushes.White;
             if (button.Content is TextBlock text)
@@ -82,10 +82,14 @@ public partial class ManageWindow : Window
         };
         button.PointerExited += (_, _) =>
         {
-            button.Background = normalBackground;
-            button.BorderBrush = normalBorder;
+            button.Background = (IBrush)application.FindResource(isPrimary ? "AccentBrush" : "ActionButtonBrush")!;
+            button.BorderBrush = (IBrush)application.FindResource("ActionBorderBrush")!;
             button.BorderThickness = new Thickness(1);
             button.Foreground = normalForeground;
+            if (button.Content is TextBlock text)
+            {
+                text.Foreground = normalForeground;
+            }
         };
     }
 
@@ -94,17 +98,11 @@ public partial class ManageWindow : Window
         AppsPanel.Children.Clear();
         _statusLabels.Clear();
         _statusDots.Clear();
-        var query = SearchBox.Text?.Trim() ?? string.Empty;
         var apps = _registry.Apps
-            .Where(app => string.IsNullOrWhiteSpace(query)
-                || app.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
-                || app.Id.Contains(query, StringComparison.OrdinalIgnoreCase)
-                || app.Category.Contains(query, StringComparison.OrdinalIgnoreCase))
             .OrderBy(app => app.Category)
             .ThenBy(app => app.Name)
             .ToList();
 
-        SummaryText.Text = $"{apps.Count} of {_registry.Apps.Count} applications";
         foreach (var group in apps.GroupBy(app => string.IsNullOrWhiteSpace(app.Category) ? "Services" : app.Category))
         {
             AppsPanel.Children.Add(new TextBlock
@@ -124,7 +122,7 @@ public partial class ManageWindow : Window
         {
             AppsPanel.Children.Add(new TextBlock
             {
-                Text = _registry.Apps.Count == 0 ? "No applications registered yet." : "No applications match your search.",
+                Text = "No applications registered yet.",
                 Foreground = (IBrush)Application.Current!.FindResource("SecondaryTextBrush")!,
                 Margin = new Thickness(4, 14)
             });
@@ -138,11 +136,33 @@ public partial class ManageWindow : Window
         _statusDots[app.Id] = dot;
         _statusLabels[app.Id] = status;
 
-        var start = ActionButton("Start", "Start application", async () => { await _controller.StartAsync(app.Id); SetStatus(app.Id, "restarting"); });
+        var start = ActionButton("Start", "Start application", async () =>
+        {
+            SetStatus(app.Id, "starting");
+            await _controller.StartAsync(app.Id);
+            await RefreshAppStatusAsync(app.Id, expectRunning: true);
+        });
         var stop = ActionButton("Stop", "Stop application", async () => { await _controller.StopAsync(app.Id); SetStatus(app.Id, "stopped"); });
-        var restart = ActionButton("Restart", "Stop and start application", async () => { SetStatus(app.Id, "restarting"); await _controller.RestartAsync(app.Id); });
-        var hide = ActionButton(app.IsHidden ? "Show" : "Hide", app.IsHidden ? "Show application in tray" : "Hide application from tray", () => { _registry.SetHidden(app.Id, !app.IsHidden); RenderApps(); return Task.CompletedTask; });
-        var delete = ActionButton("Delete", "Remove application from registry", () => { _registry.RemoveApp(app.Id); RenderApps(); return Task.CompletedTask; });
+        var restart = ActionButton("Restart", "Stop and start application", async () =>
+        {
+            SetStatus(app.Id, "restarting");
+            await _controller.RestartAsync(app.Id);
+            await RefreshAppStatusAsync(app.Id, expectRunning: true);
+        });
+        var hide = ActionButton(app.IsHidden ? "Show" : "Hide", app.IsHidden ? "Show application in tray" : "Hide application from tray", () =>
+        {
+            _registry.SetHidden(app.Id, !app.IsHidden);
+            RegistryChanged?.Invoke(this, EventArgs.Empty);
+            RenderApps();
+            return Task.CompletedTask;
+        });
+        var delete = ActionButton("Delete", "Remove application from registry", () =>
+        {
+            _registry.RemoveApp(app.Id);
+            RegistryChanged?.Invoke(this, EventArgs.Empty);
+            RenderApps();
+            return Task.CompletedTask;
+        });
 
         var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5, Children = { start, stop, restart, hide, delete } };
         var identity = new StackPanel { Spacing = 2, Children = {
@@ -168,9 +188,19 @@ public partial class ManageWindow : Window
         var editItem = new MenuItem { Header = "Edit" };
         editItem.Click += (_, _) => BeginEdit(app);
         var visibilityItem = new MenuItem { Header = app.IsHidden ? "Show in tray" : "Hide from tray" };
-        visibilityItem.Click += (_, _) => { _registry.SetHidden(app.Id, !app.IsHidden); RenderApps(); };
+        visibilityItem.Click += (_, _) =>
+        {
+            _registry.SetHidden(app.Id, !app.IsHidden);
+            RegistryChanged?.Invoke(this, EventArgs.Empty);
+            RenderApps();
+        };
         var deleteItem = new MenuItem { Header = "Delete" };
-        deleteItem.Click += (_, _) => { _registry.RemoveApp(app.Id); RenderApps(); };
+        deleteItem.Click += (_, _) =>
+        {
+            _registry.RemoveApp(app.Id);
+            RegistryChanged?.Invoke(this, EventArgs.Empty);
+            RenderApps();
+        };
         return new Border
         {
             Background = (IBrush)Application.Current!.FindResource("InputBackgroundBrush")!,
@@ -194,11 +224,12 @@ public partial class ManageWindow : Window
 
     private static void ApplyActionButtonHover(Button button)
     {
-        var normalBackground = new SolidColorBrush(Color.Parse("#263642"));
-        var normalBorder = new SolidColorBrush(Color.Parse("#49606D"));
-        var normalForeground = new SolidColorBrush(Color.Parse("#F2F6F8"));
-        var hoverBackground = new SolidColorBrush(Color.Parse("#344B59"));
-        var hoverBorder = (IBrush)Application.Current!.FindResource("AccentBrush")!;
+        var application = Application.Current!;
+        var normalBackground = (IBrush)application.FindResource("ActionButtonBrush")!;
+        var normalBorder = (IBrush)application.FindResource("ActionBorderBrush")!;
+        var normalForeground = (IBrush)application.FindResource("PrimaryTextBrush")!;
+        var hoverBackground = (IBrush)application.FindResource("ActionHoverBrush")!;
+        var hoverBorder = (IBrush)application.FindResource("AccentBrush")!;
         var hoverForeground = Brushes.White;
 
         button.PointerEntered += (_, _) =>
@@ -230,7 +261,7 @@ public partial class ManageWindow : Window
         return new TextBlock
         {
             Text = text,
-            Foreground = new SolidColorBrush(Color.Parse("#F2F6F8"))
+            Foreground = (IBrush)Application.Current!.FindResource("PrimaryTextBrush")!
         };
     }
 
@@ -243,18 +274,40 @@ public partial class ManageWindow : Window
         }
     }
 
+    private async Task RefreshAppStatusAsync(string appId, bool expectRunning)
+    {
+        var running = false;
+        for (var attempt = 0; attempt < 10; attempt++)
+        {
+            running = await _processManager.IsRunningAsync(appId);
+            if (running == expectRunning)
+            {
+                break;
+            }
+
+            await Task.Delay(200);
+        }
+
+        SetStatus(appId, running ? "running" : "stopped");
+    }
+
     private void SetStatus(string appId, string value)
     {
-        if (_statusLabels.TryGetValue(appId, out var label)) label.Text = value.ToUpperInvariant();
+        if (_statusLabels.TryGetValue(appId, out var label))
+        {
+            label.Text = value.ToUpperInvariant();
+            label.Foreground = StatusBrush(value);
+        }
         if (_statusDots.TryGetValue(appId, out var dot)) dot.Fill = StatusBrush(value);
     }
 
     private static IBrush StatusBrush(string status) => status.ToLowerInvariant() switch
     {
-        "running" => new SolidColorBrush(Color.Parse("#36C5B1")),
-        "restarting" or "starting" => new SolidColorBrush(Color.Parse("#E4B85C")),
-        "error" => new SolidColorBrush(Color.Parse("#E36A6A")),
-        _ => new SolidColorBrush(Color.Parse("#71818B"))
+        "running" => (IBrush)Application.Current!.FindResource("RunningStatusBrush")!,
+        "stopped" => (IBrush)Application.Current!.FindResource("StoppedStatusBrush")!,
+        "restarting" or "starting" => (IBrush)Application.Current!.FindResource("LavenderAccentBrush")!,
+        "error" => (IBrush)Application.Current!.FindResource("TerracottaAccentBrush")!,
+        _ => (IBrush)Application.Current!.FindResource("MutedStatusBrush")!
     };
 
     private void AddButton_Click(object? sender, RoutedEventArgs e)
@@ -280,6 +333,7 @@ public partial class ManageWindow : Window
                 });
                 FormMessage.Text = "Application updated.";
             }
+            RegistryChanged?.Invoke(this, EventArgs.Empty);
             ResetForm(false);
             RenderApps();
         }

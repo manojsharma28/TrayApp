@@ -19,6 +19,7 @@ public class TrayService
     private readonly ILogger<TrayService> _log;
     private readonly WindowsToastNotificationService _toastNotifications = new();
     private readonly Dictionary<string, string> _lastStatuses = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, NativeMenuItem> _nativeStatusItems = new(StringComparer.OrdinalIgnoreCase);
     private bool _statusSnapshotReady;
     private Timer? _pollTimer;
     private readonly TrayApp.Shared.Interfaces.IStateTracker? _tracker;
@@ -35,6 +36,7 @@ public class TrayService
         _processManager = processManager;
         _tracker = tracker;
         _log = log;
+        UiThemeService.Apply(registry.UiTheme);
         InitializeTray();
     }
 
@@ -84,6 +86,7 @@ public class TrayService
 
     private NativeMenu BuildNativeMenu(IClassicDesktopStyleApplicationLifetime desktop)
     {
+        _nativeStatusItems.Clear();
         var menu = new NativeMenu();
 
         var trayApps = _registry.Apps.Where(app => !app.IsHidden && !string.IsNullOrWhiteSpace(app.Id)).ToList();
@@ -105,7 +108,11 @@ public class TrayService
                 startItem.Click += async (_, _) => await _controller.StartAsync(app.Id);
                 var stopItem = new NativeMenuItem("Stop application");
                 stopItem.Click += async (_, _) => await _controller.StopAsync(app.Id);
-                var statusItem = new NativeMenuItem("Status: unknown") { IsEnabled = false };
+                var initialStatus = _lastStatuses.TryGetValue(app.Id, out var knownStatus)
+                    ? knownStatus
+                    : "unknown";
+                var statusItem = new NativeMenuItem($"Status: {initialStatus}") { IsEnabled = false };
+                _nativeStatusItems[app.Id] = statusItem;
 
                 submenu.Items.Add(startItem);
                 submenu.Items.Add(stopItem);
@@ -151,6 +158,7 @@ public class TrayService
             if (_manageWindow is null || !_manageWindow.IsVisible)
             {
                 _manageWindow = new Views.ManageWindow(_registry, _controller, _processManager, _tracker);
+                _manageWindow.RegistryChanged += (_, _) => RefreshNativeMenu();
                 _manageWindow.Closed += (_, _) => _manageWindow = null;
                 _manageWindow.Show();
             }
@@ -159,6 +167,20 @@ public class TrayService
                 _manageWindow.Activate();
             }
         });
+    }
+
+    private void RefreshNativeMenu()
+    {
+        if (Avalonia.Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            return;
+        }
+
+        _nativeMenu = BuildNativeMenu(desktop);
+        if (_trayIcon != null)
+        {
+            _trayIcon.Menu = _nativeMenu;
+        }
     }
 
     private void ShowTrayMenu(IClassicDesktopStyleApplicationLifetime desktop)
@@ -200,10 +222,20 @@ public class TrayService
         if (screen == null) return;
 
         var area = screen.WorkingArea;
-        var width = Math.Max((int)window.ClientSize.Width, 320);
-        var height = (int)window.ClientSize.Height;
-        var x = area.Right - width - 80;// Math.Clamp(area.Right - width - 12 + 50, area.X + 12, area.Right - width - 12);
-        var y = Math.Clamp(area.Bottom - height - 12, area.Y + 12, area.Bottom - height - 12);
+        var scale = screen.Scaling;
+        var availableWidth = Math.Max(1, area.Width - 24);
+        var availableHeight = Math.Max(1, area.Height - 24);
+        var width = Math.Min(Math.Max(window.ClientSize.Width, 320), availableWidth / scale);
+        var height = Math.Min(Math.Max(window.ClientSize.Height, 320), availableHeight / scale);
+        window.Width = width;
+        window.Height = height;
+
+        var pixelWidth = (int)Math.Ceiling(width * scale);
+        var pixelHeight = (int)Math.Ceiling(height * scale);
+        var maxX = Math.Max(area.X + 12, area.Right - pixelWidth - 12);
+        var maxY = Math.Max(area.Y + 12, area.Bottom - pixelHeight - 12);
+        var x = Math.Clamp(area.Right - pixelWidth - 12, area.X + 12, maxX);
+        var y = Math.Clamp(area.Bottom - pixelHeight - 12, area.Y + 12, maxY);
         window.Position = new PixelPoint(x, y);
     }
 
@@ -213,14 +245,16 @@ public class TrayService
         {
             foreach (var app in _registry.Apps)
             {
-                var status = _tracker?.GetStatus(app.Id);
-                if (string.IsNullOrWhiteSpace(status))
+                var trackerStatus = _tracker?.GetStatus(app.Id);
+                var hasProcessCommand = !string.IsNullOrWhiteSpace(app.StartCommand)
+                    || !string.IsNullOrWhiteSpace(app.ExecutablePath);
+                if (hasProcessCommand)
                 {
                     var running = await _processManager.IsRunningAsync(app.Id);
-                    status = running ? "running" : "stopped";
+                    trackerStatus = running ? "running" : "stopped";
                 }
 
-                var appStatus = new TrayApp.Shared.Models.AppStatus(app.Id, status, DateTime.UtcNow);
+                var appStatus = new TrayApp.Shared.Models.AppStatus(app.Id, trackerStatus ?? "stopped", DateTime.UtcNow);
                 Avalonia.Threading.Dispatcher.UIThread.Post(() => UpdateStatusForApp(appStatus));
             }
 
@@ -250,29 +284,9 @@ public class TrayService
 
             _lastStatuses[status.AppId] = currentStatus;
             _trayMenuWindow?.UpdateStatus(status.AppId, status.Status);
-            if (_nativeMenu == null)
+            if (_nativeStatusItems.TryGetValue(status.AppId, out var statusItem))
             {
-                return;
-            }
-
-            foreach (var item in _nativeMenu.Items.OfType<NativeMenuItem>())
-            {
-                if (item.Menu is not NativeMenu submenu)
-                {
-                    continue;
-                }
-
-                var app = _registry.Apps.FirstOrDefault(a => a.Name == item.Header?.ToString());
-                if (app?.Id != status.AppId)
-                {
-                    continue;
-                }
-
-                var statusItem = submenu.Items.OfType<NativeMenuItem>().LastOrDefault();
-                if (statusItem != null)
-                {
-                    statusItem.Header = $"Status: {status.Status}";
-                }
+                statusItem.Header = $"Status: {status.Status}";
             }
         }
         catch { }

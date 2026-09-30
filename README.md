@@ -37,14 +37,14 @@ Run-all scripts
 Windows PowerShell: `Scripts/run-all.ps1`
 Linux Bash: `Scripts/run-all.sh` (requires `jq` to parse JSON)
 
-Configuration file: `Config/appRegistry.json` (see example in repo). The Settings window can enable or disable Windows notifications when a managed application stops. This setting is stored as `notifications.enabled` and defaults to `true` for existing configurations.
+Configuration file: `Config/appRegistry.json` (see example in repo). The Settings window can enable or disable Windows notifications when a managed application stops. This setting is stored as `notifications.enabled` and defaults to `true` for existing configurations. Choose the Natural or Blue button palette from the Manage applications window; the choice is saved as `uiTheme`.
 ```
 
 ## Customize the UI
 
 The Avalonia UI has three separate customization points:
 
-- `src/TrayApp.UI/App.axaml` contains the shared theme resources. Update the brushes named `PageBackgroundBrush`, `PanelBackgroundBrush`, `PrimaryTextBrush`, `SecondaryTextBrush`, `AccentBrush`, and `InputBackgroundBrush` to change the application palette.
+- `src/TrayApp.UI/App.axaml` contains the shared theme resources. The Natural palette uses a soft warm-neutral gradient and sage controls; the selectable Blue palette recolors buttons blue. Running statuses are green and stopped statuses are red in either palette. Update `PageBackgroundBrush`, `PanelBackgroundBrush`, `PrimaryTextBrush`, `SecondaryTextBrush`, `AccentBrush`, `RunningStatusBrush`, `StoppedStatusBrush`, `LavenderAccentBrush`, `TerracottaAccentBrush`, and `InputBackgroundBrush` to customize it.
 - `src/TrayApp.UI/Views/SettingsWindow.axaml` contains the settings page layout and its local control styles. Change the window dimensions, typography, spacing, labels, endpoint fields, and save button there. Keep the control names `PubEndpoint`, `SubEndpoint`, and `SaveButton` unless you also update `SettingsWindow.axaml.cs`.
 - `src/TrayApp.UI/Services/TrayService.cs` connects the tray icon to the custom menu and owns the tray commands.
 - `src/TrayApp.UI/Services/WindowsToastNotificationService.cs` sends best-effort Windows notification balloons when enabled and an application transitions to stopped.

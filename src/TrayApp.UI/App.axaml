@@ -3,14 +3,26 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="TrayApp.UI.App">
     <Application.Resources>
-        <SolidColorBrush x:Key="PageBackgroundBrush" Color="#111820" />
-        <SolidColorBrush x:Key="PanelBackgroundBrush" Color="#19232D" />
-        <SolidColorBrush x:Key="PanelBorderBrush" Color="#2B3A47" />
-        <SolidColorBrush x:Key="PrimaryTextBrush" Color="#F2F6F8" />
-        <SolidColorBrush x:Key="SecondaryTextBrush" Color="#9EAFBA" />
-        <SolidColorBrush x:Key="AccentBrush" Color="#36C5B1" />
-        <SolidColorBrush x:Key="AccentHoverBrush" Color="#48D8C3" />
-        <SolidColorBrush x:Key="InputBackgroundBrush" Color="#10171E" />
+      <LinearGradientBrush x:Key="PageBackgroundBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+        <GradientStop Color="#F4F3EE" Offset="0" />
+        <GradientStop Color="#E9EFE9" Offset="1" />
+      </LinearGradientBrush>
+      <SolidColorBrush x:Key="PanelBackgroundBrush" Color="#FCFBF7" />
+      <SolidColorBrush x:Key="PanelBorderBrush" Color="#D4D9D1" />
+      <SolidColorBrush x:Key="PrimaryTextBrush" Color="#202B27" />
+      <SolidColorBrush x:Key="SecondaryTextBrush" Color="#52615A" />
+      <SolidColorBrush x:Key="AccentBrush" Color="#52735F" />
+      <SolidColorBrush x:Key="AccentHoverBrush" Color="#3F604C" />
+      <SolidColorBrush x:Key="ActionButtonBrush" Color="#E8ECE5" />
+      <SolidColorBrush x:Key="ActionHoverBrush" Color="#557560" />
+      <SolidColorBrush x:Key="ActionPressedBrush" Color="#3F604C" />
+      <SolidColorBrush x:Key="ActionBorderBrush" Color="#BCC8BC" />
+      <SolidColorBrush x:Key="InputBackgroundBrush" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="LavenderAccentBrush" Color="#76658B" />
+      <SolidColorBrush x:Key="TerracottaAccentBrush" Color="#A84F3C" />
+      <SolidColorBrush x:Key="MutedStatusBrush" Color="#727D76" />
+      <SolidColorBrush x:Key="RunningStatusBrush" Color="#2F7548" />
+      <SolidColorBrush x:Key="StoppedStatusBrush" Color="#A9433E" />
     </Application.Resources>
   <Application.Styles>
     <FluentTheme DensityStyle="Compact"/>
@@ -30,14 +42,14 @@
       <Setter Property="Foreground" Value="White" />
     </Style>
     <Style Selector="ToolTip">
-      <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource PanelBorderBrush}" />
+      <Setter Property="Background" Value="#28362F" />
+      <Setter Property="BorderBrush" Value="#53665A" />
       <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+      <Setter Property="Foreground" Value="#FFFFFF" />
       <Setter Property="Padding" Value="8,5" />
     </Style>
     <Style Selector="ToolTip TextBlock">
-      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+      <Setter Property="Foreground" Value="#FFFFFF" />
     </Style>
 
   </Application.Styles>

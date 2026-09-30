@@ -9,10 +9,10 @@
         WindowStartupLocation="CenterScreen">
   <Window.Styles>
     <Style Selector="Button.action">
-      <Setter Property="Background" Value="#263642" />
-      <Setter Property="BorderBrush" Value="#49606D" />
+      <Setter Property="Background" Value="{DynamicResource ActionButtonBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ActionBorderBrush}" />
       <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="Foreground" Value="#F2F6F8" />
+      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
       <Setter Property="Padding" Value="12,7" />
       <Setter Property="MinHeight" Value="34" />
       <Setter Property="FontSize" Value="12" />
@@ -32,14 +32,14 @@
       </Setter>
     </Style>
     <Style Selector="Button.action:pointerover">
-      <Setter Property="Background" Value="#344B59" />
+      <Setter Property="Background" Value="{DynamicResource ActionHoverBrush}" />
       <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
       <Setter Property="Foreground" Value="#FFFFFF" />
-       <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderThickness" Value="1" />
     </Style>
     <Style Selector="Button.action:pressed">
-      <Setter Property="Background" Value="#1C2A33" />
-      <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}" />
+      <Setter Property="Background" Value="{DynamicResource ActionPressedBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="Foreground" Value="#FFFFFF" />
     </Style>
@@ -50,13 +50,13 @@
       <Setter Property="Foreground" Value="#FFFFFF" />
     </Style>
     <Style Selector="Button.action:disabled">
-      <Setter Property="Background" Value="#202A30" />
-      <Setter Property="BorderBrush" Value="#34434B" />
-      <Setter Property="Foreground" Value="#71818B" />
+      <Setter Property="Background" Value="#E5E7E1" />
+      <Setter Property="BorderBrush" Value="#D0D4CD" />
+      <Setter Property="Foreground" Value="{DynamicResource MutedStatusBrush}" />
     </Style>
     <Style Selector="Button.primary">
       <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
-      <Setter Property="Foreground" Value="#071614" />
+      <Setter Property="Foreground" Value="#FFFFFF" />
       <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
     <Style Selector="Button.primary:pointerover">
@@ -65,45 +65,28 @@
       <Setter Property="Foreground" Value="White" />
     </Style>
     <Style Selector="ComboBox">
-      <Setter Property="Background" Value="#10171E" />
-      <Setter Property="BorderBrush" Value="#49606D" />
-      <Setter Property="Foreground" Value="#F2F6F8" />
+      <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource PanelBorderBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
       <Setter Property="MinHeight" Value="38" />
     </Style>   
   </Window.Styles>
 
-  <Grid RowDefinitions="Auto,Auto,*" Margin="30,26,30,28">
+  <Grid RowDefinitions="Auto,*" Margin="24,12,24,20">
     <Grid ColumnDefinitions="*,Auto">
-      <StackPanel Spacing="4">
-        <TextBlock Text="AppHive" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" LetterSpacing="1.8" />
-        <TextBlock Text="Manage applications" FontSize="30" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" />
-        <TextBlock Text="Control processes, organize your tray, and keep runtime configuration in one place." FontSize="13" Foreground="{DynamicResource SecondaryTextBrush}" />
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+        <TextBlock Text="Theme" VerticalAlignment="Center" Foreground="{DynamicResource SecondaryTextBrush}" />
+        <ComboBox Name="ThemeSelector" SelectedIndex="0" MinWidth="132">
+          <ComboBoxItem Content="Natural" Tag="natural" />
+          <ComboBoxItem Content="Blue" Tag="blue" />
+        </ComboBox>
+        <Button Name="RefreshButton" Classes="action" Content="Refresh" ToolTip.Tip="Refresh application status" />
       </StackPanel>
-      <Button Grid.Column="1" Name="RefreshButton" Classes="action" Content="Refresh" ToolTip.Tip="Refresh application status" VerticalAlignment="Center" />
     </Grid>
 
-    <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,24,0,16">
-      <Grid>
-        <TextBox Name="SearchBox"
-                 Classes="field"
-                 Watermark="Search applications..."
-                 ToolTip.Tip="Filter by name, ID, or category"
-                 Padding="12,9,42,9" />
-        <PathIcon Data="M11.5,2 A9.5,9.5 0,1,0 17.8,18.6 L22,22.8 L23.4,21.4 L19.2,17.2 A9.5,9.5 0,0,0 11.5,2 Z M11.5,5 A6.5,6.5 0,1,1 11.5,18 A6.5,6.5 0,0,1 11.5,5 Z"
-                  Width="17"
-                  Height="17"
-                  Margin="0,0,14,0"
-                  HorizontalAlignment="Right"
-                  VerticalAlignment="Center"
-                  Foreground="{DynamicResource SecondaryTextBrush}"
-                  IsHitTestVisible="False" />
-      </Grid>
-      <TextBlock Grid.Column="1" Name="SummaryText" VerticalAlignment="Center" Margin="16,0,0,0" Foreground="{DynamicResource SecondaryTextBrush}" />
-    </Grid>
-
-    <Grid Grid.Row="2" ColumnDefinitions="*,340">
+    <Grid Grid.Row="1" ColumnDefinitions="*,340" Margin="0,10,0,0">
       <Border Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource PanelBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16">
-        <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
           <StackPanel Name="AppsPanel" Spacing="16" />
         </ScrollViewer>
       </Border>

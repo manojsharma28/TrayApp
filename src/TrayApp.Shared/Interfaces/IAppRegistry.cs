@@ -8,6 +8,7 @@ public interface IAppRegistry
     string PubEndpoint { get; }
     string SubEndpoint { get; }
     bool NotificationsEnabled { get; }
+    string UiTheme { get; }
     AppInfo? GetApp(string appId);
     void AddApp(AppInfo app);
     void UpdateApp(AppInfo app);
@@ -15,4 +16,5 @@ public interface IAppRegistry
     void SetHidden(string appId, bool hidden);
     void UpdateZeroMqEndpoints(string pubEndpoint, string subEndpoint);
     void SetNotificationsEnabled(bool enabled);
+    void SetUiTheme(string theme);
 }

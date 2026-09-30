@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="TrayApp.UI.Views.TrayMenuWindow"
         Width="360"
+        Height="640"
         Background="{DynamicResource PageBackgroundBrush}"
         ShowInTaskbar="False"
         SystemDecorations="None"
@@ -16,6 +17,7 @@
             <Setter Property="BorderBrush" Value="{DynamicResource PanelBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="Padding" Value="10,7" />
             <Setter Property="Template">
         <ControlTemplate>
           <Border Background="{TemplateBinding Background}"
@@ -32,12 +34,12 @@
               </Setter>
           </Style>
           <Style Selector="Button.menu-action:pointerover">
-            <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+            <Setter Property="Background" Value="{DynamicResource ActionHoverBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
             <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
           </Style>
           <Style Selector="Button.menu-action:pressed">
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="Background" Value="{DynamicResource ActionPressedBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}" />
             <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
           </Style>
@@ -54,7 +56,7 @@
           BorderThickness="1"
           CornerRadius="12"
           Padding="12">
-    <StackPanel Spacing="8">
+    <Grid RowDefinitions="Auto,*,Auto,Auto,Auto">
       <Grid ColumnDefinitions="*,Auto" Margin="6,4,6,8">
         <StackPanel Spacing="3">
           <TextBlock Text="AppHive"
@@ -76,24 +78,27 @@
                    LetterSpacing="1" />
       </Grid>
 
-      <Border Background="{DynamicResource InputBackgroundBrush}"
+      <Border Grid.Row="1"
+              Background="{DynamicResource InputBackgroundBrush}"
               BorderBrush="{DynamicResource PanelBorderBrush}"
               BorderThickness="1"
               CornerRadius="8"
-              Padding="6">
-        <ScrollViewer MaxHeight="420" VerticalScrollBarVisibility="Auto">
+              Padding="6"
+          MinHeight="0"
+              Margin="0,0,0,8">
+        <ScrollViewer MinHeight="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
           <StackPanel Name="AppItemsPanel" Spacing="2" />
         </ScrollViewer>
       </Border>
 
-      <Border Height="1" Background="{DynamicResource PanelBorderBrush}" Margin="4,2" />
+      <Border Grid.Row="2" Height="1" Background="{DynamicResource PanelBorderBrush}" Margin="4,2,4,8" />
 
-      <Button Name="SettingsButton"
+      <Button Grid.Row="3" Name="SettingsButton"
               Classes="menu-action accent"
               Content="Manage applications" />
-      <Button Name="ExitButton"
+      <Button Grid.Row="4" Name="ExitButton"
               Classes="menu-action accent"
               Content="Quit AppHive" />
-    </StackPanel>
+    </Grid>
   </Border>
 </Window>

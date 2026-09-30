@@ -29,7 +29,9 @@ public class Orchestrator : IHostedService
             try
             {
                 var running = await _processManager.IsRunningAsync(app.Id, cancellationToken);
-                if (!running)
+                if (!running
+                    && (!string.IsNullOrWhiteSpace(app.StartCommand)
+                        || !string.IsNullOrWhiteSpace(app.ExecutablePath)))
                 {
                     _log.LogInformation("Orchestrator starting {appId} via {cmd}", app.Id, app.StartCommand ?? app.ExecutablePath);
                     await _processManager.StartProcessAsync(app.Id, app.StartCommand, cancellationToken);

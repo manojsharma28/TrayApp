@@ -19,11 +19,13 @@
       <Setter Property="MinHeight" Value="42" />
       <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}" />
       <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}" />
-      <Setter Property="SelectionForegroundBrush" Value="#071614" />
+      <Setter Property="SelectionForegroundBrush" Value="#202B27" />
     </Style>
     <Style Selector="Button.save-button">
       <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
-      <Setter Property="Foreground" Value="#071614" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="#FFFFFF" />
       <Setter Property="FontSize" Value="14" />
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="Padding" Value="22,10" />

@@ -64,6 +64,15 @@ public partial class TrayMenuWindow : Window
         if (_statusLabels.TryGetValue(appId, out var label))
         {
             label.Text = status.ToUpperInvariant();
+            var resourceKey = status.Trim().ToLowerInvariant() switch
+            {
+                "running" => "RunningStatusBrush",
+                "stopped" or "not running" or "exited" => "StoppedStatusBrush",
+                "starting" or "restarting" => "LavenderAccentBrush",
+                "error" => "TerracottaAccentBrush",
+                _ => "SecondaryTextBrush"
+            };
+            label.Foreground = (IBrush)Application.Current!.FindResource(resourceKey)!;
         }
     }
 
@@ -143,7 +152,7 @@ public partial class TrayMenuWindow : Window
         var normalBackground = (IBrush)application.FindResource("PanelBackgroundBrush")!;
         var normalBorder = (IBrush)application.FindResource("PanelBorderBrush")!;
         var normalForeground = (IBrush)application.FindResource("PrimaryTextBrush")!;
-        var hoverBackground = (IBrush)application.FindResource("AccentHoverBrush")!;
+        var hoverBackground = (IBrush)application.FindResource("ActionHoverBrush")!;
         var hoverBorder = (IBrush)application.FindResource("AccentBrush")!;
         var hoverForeground = Brushes.White;
 

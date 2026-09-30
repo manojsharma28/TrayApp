@@ -24,6 +24,7 @@ public class AppRegistryService : IAppRegistry
     public string PubEndpoint => _registry.ZeroMq.PubEndpoint;
     public string SubEndpoint => _registry.ZeroMq.SubEndpoint;
     public bool NotificationsEnabled => _registry.Notifications.Enabled;
+    public string UiTheme => _registry.UiTheme;
     public AppInfo? GetApp(string appId) => _registry.Apps.FirstOrDefault(a => string.Equals(a.Id, appId, StringComparison.OrdinalIgnoreCase));
 
     public void AddApp(AppInfo app)
@@ -85,6 +86,14 @@ public class AppRegistryService : IAppRegistry
     public void SetNotificationsEnabled(bool enabled)
     {
         _registry.Notifications.Enabled = enabled;
+        SaveRegistry();
+    }
+
+    public void SetUiTheme(string theme)
+    {
+        _registry.UiTheme = string.Equals(theme, "blue", StringComparison.OrdinalIgnoreCase)
+            ? "blue"
+            : "natural";
         SaveRegistry();
     }
 

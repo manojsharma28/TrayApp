@@ -99,6 +99,7 @@ The configuration model is `AppConfiguration` and contains:
 - `Apps: List<AppInfo>`
 - `ZeroMq: ZeroMqConfig`
 - `Notifications: NotificationConfig`
+- `UiTheme: string`, persisted as `uiTheme` and set to `natural` or `blue` from Manage applications.
 
 `Notifications.Enabled` is serialized as `notifications.enabled`. It defaults to `true` when older configuration files do not contain the property. The Settings window persists this value with the ZeroMQ endpoints.
 
