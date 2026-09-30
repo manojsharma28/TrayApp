@@ -19,6 +19,7 @@ public partial class ManageWindow : Window
     private readonly IProcessManager _processManager;
     private readonly Dictionary<string, TextBlock> _statusLabels = new();
     private readonly Dictionary<string, Ellipse> _statusDots = new();
+    private readonly Dictionary<string, string> _statusValues = new(StringComparer.OrdinalIgnoreCase);
     private string? _editingAppId;
 
     public event EventHandler? RegistryChanged;
@@ -132,9 +133,11 @@ public partial class ManageWindow : Window
     private Control CreateAppRow(AppInfo app)
     {
         var dot = new Ellipse { Width = 10, Height = 10, Fill = StatusBrush("unknown"), VerticalAlignment = VerticalAlignment.Center };
-        var status = new TextBlock { Text = "UNKNOWN", FontSize = 11, FontWeight = FontWeight.SemiBold, Foreground = (IBrush)Application.Current!.FindResource("SecondaryTextBrush")!, VerticalAlignment = VerticalAlignment.Center };
+        var currentStatus = _statusValues.TryGetValue(app.Id, out var knownStatus) ? knownStatus : "unknown";
+        var status = new TextBlock { Text = currentStatus.ToUpperInvariant(), FontSize = 11, FontWeight = FontWeight.SemiBold, Foreground = StatusBrush(currentStatus), VerticalAlignment = VerticalAlignment.Center };
         _statusDots[app.Id] = dot;
         _statusLabels[app.Id] = status;
+        dot.Fill = StatusBrush(currentStatus);
 
         var start = ActionButton("Start", "Start application", async () =>
         {
@@ -142,23 +145,29 @@ public partial class ManageWindow : Window
             await _controller.StartAsync(app.Id);
             await RefreshAppStatusAsync(app.Id, expectRunning: true);
         });
-        var stop = ActionButton("Stop", "Stop application", async () => { await _controller.StopAsync(app.Id); SetStatus(app.Id, "stopped"); });
+        var stop = ActionButton("Stop", "Stop application", async () =>
+        {
+            SetStatus(app.Id, "stopping");
+            await _controller.StopAsync(app.Id);
+            await RefreshAppStatusAsync(app.Id, expectRunning: false);
+        });
         var restart = ActionButton("Restart", "Stop and start application", async () =>
         {
             SetStatus(app.Id, "restarting");
             await _controller.RestartAsync(app.Id);
             await RefreshAppStatusAsync(app.Id, expectRunning: true);
         });
-        var hide = ActionButton(app.IsHidden ? "Show" : "Hide", app.IsHidden ? "Show application in tray" : "Hide application from tray", () =>
+        var hide = ActionButton(app.IsHidden ? "Show" : "Hide", app.IsHidden ? "Show application in tray" : "Hide application from tray", async () =>
         {
             _registry.SetHidden(app.Id, !app.IsHidden);
             RegistryChanged?.Invoke(this, EventArgs.Empty);
             RenderApps();
-            return Task.CompletedTask;
+            await RefreshAppStatusAsync(app.Id);
         });
         var delete = ActionButton("Delete", "Remove application from registry", () =>
         {
             _registry.RemoveApp(app.Id);
+            _statusValues.Remove(app.Id);
             RegistryChanged?.Invoke(this, EventArgs.Empty);
             RenderApps();
             return Task.CompletedTask;
@@ -188,16 +197,18 @@ public partial class ManageWindow : Window
         var editItem = new MenuItem { Header = "Edit" };
         editItem.Click += (_, _) => BeginEdit(app);
         var visibilityItem = new MenuItem { Header = app.IsHidden ? "Show in tray" : "Hide from tray" };
-        visibilityItem.Click += (_, _) =>
+        visibilityItem.Click += async (_, _) =>
         {
             _registry.SetHidden(app.Id, !app.IsHidden);
             RegistryChanged?.Invoke(this, EventArgs.Empty);
             RenderApps();
+            await RefreshAppStatusAsync(app.Id);
         };
         var deleteItem = new MenuItem { Header = "Delete" };
         deleteItem.Click += (_, _) =>
         {
             _registry.RemoveApp(app.Id);
+            _statusValues.Remove(app.Id);
             RegistryChanged?.Invoke(this, EventArgs.Empty);
             RenderApps();
         };
@@ -274,13 +285,14 @@ public partial class ManageWindow : Window
         }
     }
 
-    private async Task RefreshAppStatusAsync(string appId, bool expectRunning)
+    private async Task RefreshAppStatusAsync(string appId, bool? expectRunning = null)
     {
         var running = false;
-        for (var attempt = 0; attempt < 10; attempt++)
+        var attempts = expectRunning.HasValue ? 10 : 1;
+        for (var attempt = 0; attempt < attempts; attempt++)
         {
             running = await _processManager.IsRunningAsync(appId);
-            if (running == expectRunning)
+            if (!expectRunning.HasValue || running == expectRunning.Value)
             {
                 break;
             }
@@ -293,6 +305,7 @@ public partial class ManageWindow : Window
 
     private void SetStatus(string appId, string value)
     {
+        _statusValues[appId] = value;
         if (_statusLabels.TryGetValue(appId, out var label))
         {
             label.Text = value.ToUpperInvariant();
@@ -336,6 +349,7 @@ public partial class ManageWindow : Window
             RegistryChanged?.Invoke(this, EventArgs.Empty);
             ResetForm(false);
             RenderApps();
+            _ = RefreshAppStatusAsync(app.Id);
         }
         catch (Exception ex)
         {

@@ -87,7 +87,7 @@
           MinHeight="0"
               Margin="0,0,0,8">
         <ScrollViewer MinHeight="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-          <StackPanel Name="AppItemsPanel" Spacing="2" />
+          <StackPanel Name="AppItemsPanel" Spacing="2" Margin="0,0,20,0" />
         </ScrollViewer>
       </Border>
 

@@ -72,22 +72,10 @@
     </Style>   
   </Window.Styles>
 
-  <Grid RowDefinitions="Auto,*" Margin="24,12,24,20">
-    <Grid ColumnDefinitions="*,Auto">
-      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-        <TextBlock Text="Theme" VerticalAlignment="Center" Foreground="{DynamicResource SecondaryTextBrush}" />
-        <ComboBox Name="ThemeSelector" SelectedIndex="0" MinWidth="132">
-          <ComboBoxItem Content="Natural" Tag="natural" />
-          <ComboBoxItem Content="Blue" Tag="blue" />
-        </ComboBox>
-        <Button Name="RefreshButton" Classes="action" Content="Refresh" ToolTip.Tip="Refresh application status" />
-      </StackPanel>
-    </Grid>
-
-    <Grid Grid.Row="1" ColumnDefinitions="*,340" Margin="0,10,0,0">
+  <Grid ColumnDefinitions="*,340" Margin="16,8,16,12">
       <Border Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource PanelBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16">
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-          <StackPanel Name="AppsPanel" Spacing="16" />
+          <StackPanel Name="AppsPanel" Spacing="16" Margin="0,0,20,0" />
         </ScrollViewer>
       </Border>
 
@@ -95,6 +83,13 @@
         <StackPanel Spacing="16">
           <Border Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource PanelBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="18">
             <StackPanel Spacing="12">
+              <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+                <ComboBox Name="ThemeSelector" SelectedIndex="0" MinWidth="96" ToolTip.Tip="Select color theme">
+                  <ComboBoxItem Content="Natural" Tag="natural" />
+                  <ComboBoxItem Content="Blue" Tag="blue" />
+                </ComboBox>
+                <Button Name="RefreshButton" Classes="action" Content="Refresh" ToolTip.Tip="Refresh application status" />
+              </StackPanel>
               <StackPanel Spacing="3">
                 <TextBlock Name="FormTitle" Text="Add application" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTextBrush}" />
                 <TextBlock Text="Register a process and its messaging endpoint." FontSize="12" Foreground="{DynamicResource SecondaryTextBrush}" />
@@ -130,5 +125,4 @@
         </StackPanel>
       </ScrollViewer>
     </Grid>
-  </Grid>
 </Window>
