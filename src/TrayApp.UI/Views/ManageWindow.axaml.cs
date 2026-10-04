@@ -100,23 +100,12 @@ public partial class ManageWindow : Window
         _statusLabels.Clear();
         _statusDots.Clear();
         var apps = _registry.Apps
-            .OrderBy(app => app.Category)
-            .ThenBy(app => app.Name)
+            .OrderBy(app => app.Name)
             .ToList();
 
-        foreach (var group in apps.GroupBy(app => string.IsNullOrWhiteSpace(app.Category) ? "Services" : app.Category))
+        foreach (var app in apps)
         {
-            AppsPanel.Children.Add(new TextBlock
-            {
-                Text = group.Key.ToUpperInvariant(),
-                FontSize = 11,
-                FontWeight = FontWeight.Bold,
-                Foreground = (IBrush)Application.Current!.FindResource("AccentBrush")!,
-                LetterSpacing = 1.3,
-                Margin = new Thickness(2, 4, 0, -8)
-            });
-            foreach (var app in group)
-                AppsPanel.Children.Add(CreateAppRow(app));
+            AppsPanel.Children.Add(CreateAppRow(app));
         }
 
         if (apps.Count == 0)
@@ -327,7 +316,9 @@ public partial class ManageWindow : Window
     {
         try
         {
-            var category = (CategoryBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "Services";
+            var category = _editingAppId == null
+                ? "Applications"
+                : _registry.GetApp(_editingAppId)?.Category ?? "Applications";
             var app = new AppInfo(AppIdBox.Text ?? string.Empty, AppNameBox.Text ?? string.Empty, StartCommand: CommandBox.Text, ZmqEndpoint: EndpointBox.Text, Category: category);
             if (_editingAppId == null)
             {
@@ -365,7 +356,6 @@ public partial class ManageWindow : Window
         AppNameBox.Text = app.Name;
         CommandBox.Text = app.StartCommand ?? app.ExecutablePath ?? string.Empty;
         EndpointBox.Text = app.ZmqEndpoint ?? string.Empty;
-        CategoryBox.SelectedItem = CategoryBox.Items.OfType<ComboBoxItem>().FirstOrDefault(item => string.Equals(item.Content?.ToString(), app.Category, StringComparison.OrdinalIgnoreCase));
         FormTitle.Text = "Edit application";
         AddButton.Content = "Save changes";
         CancelEditButton.IsVisible = true;
@@ -377,7 +367,6 @@ public partial class ManageWindow : Window
         _editingAppId = null;
         AppIdBox.IsEnabled = true;
         AppIdBox.Text = AppNameBox.Text = CommandBox.Text = EndpointBox.Text = string.Empty;
-        CategoryBox.SelectedIndex = 0;
         FormTitle.Text = "Add application";
         AddButton.Content = "Add application";
         CancelEditButton.IsVisible = false;
