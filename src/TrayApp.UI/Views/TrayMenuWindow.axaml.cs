@@ -127,21 +127,56 @@ public partial class TrayMenuWindow : Window
         };
         var row = new Grid
         {
-            ColumnDefinitions = new ColumnDefinitions("*,Auto"),
+            ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto"),
             RowDefinitions = new RowDefinitions("Auto,Auto"),
             Margin = new Avalonia.Thickness(6, 7)
         };
-        row.Children.Add(new TextBlock
+        var executableIcon = AppExecutableIconLoader.Load(app);
+        if (executableIcon != null)
+        {
+            row.Children.Add(new Avalonia.Controls.Image
+            {
+                Source = executableIcon,
+                Width = 32,
+                Height = 32,
+                Stretch = Avalonia.Media.Stretch.Uniform,
+                VerticalAlignment = VerticalAlignment.Center
+            });
+        }
+        else
+        {
+            row.Children.Add(new Border
+            {
+                Width = 32,
+                Height = 32,
+                CornerRadius = new Avalonia.CornerRadius(5),
+                Background = (IBrush)Application.Current!.FindResource("AccentBrush")!,
+                Child = new TextBlock
+                {
+                    Text = string.IsNullOrWhiteSpace(app.Name) ? "?" : app.Name[..1].ToUpperInvariant(),
+                    Foreground = Brushes.White,
+                    FontSize = 14,
+                    FontWeight = FontWeight.SemiBold,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                }
+            });
+        }
+        var identity = new TextBlock
         {
             Text = app.Name,
             FontSize = 14,
             FontWeight = FontWeight.SemiBold,
-            Foreground = (IBrush)Application.Current!.FindResource("PrimaryTextBrush")!
-        });
-        Grid.SetColumn(status, 1);
+            Foreground = (IBrush)Application.Current!.FindResource("PrimaryTextBrush")!,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Avalonia.Thickness(8, 0, 0, 0)
+        };
+        Grid.SetColumn(identity, 1);
+        row.Children.Add(identity);
+        Grid.SetColumn(status, 2);
         row.Children.Add(status);
         Grid.SetRow(actions, 1);
-        Grid.SetColumnSpan(actions, 2);
+        Grid.SetColumnSpan(actions, 3);
         row.Children.Add(actions);
         AppItemsPanel.Children.Add(row);
     }

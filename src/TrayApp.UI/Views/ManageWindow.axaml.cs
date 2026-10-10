@@ -178,8 +178,42 @@ public partial class ManageWindow : Window
             }
         };
         var statusPanel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 7, Children = { dot, status } };
+        var executableIcon = AppExecutableIconLoader.Load(app);
+        var appIdentity = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, VerticalAlignment = VerticalAlignment.Center };
+        if (executableIcon != null)
+        {
+            appIdentity.Children.Add(new Avalonia.Controls.Image
+            {
+                Source = executableIcon,
+                Width = 36,
+                Height = 36,
+                Stretch = Avalonia.Media.Stretch.Uniform,
+                VerticalAlignment = VerticalAlignment.Center
+            });
+        }
+        else
+        {
+            appIdentity.Children.Add(new Border
+            {
+                Width = 36,
+                Height = 36,
+                CornerRadius = new CornerRadius(6),
+                Background = (IBrush)Application.Current!.FindResource("AccentBrush")!,
+                Child = new TextBlock
+                {
+                    Text = string.IsNullOrWhiteSpace(app.Name) ? "?" : app.Name[..1].ToUpperInvariant(),
+                    Foreground = Brushes.White,
+                    FontSize = 16,
+                    FontWeight = FontWeight.SemiBold,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                }
+            });
+        }
+        appIdentity.Children.Add(identity);
+
         var header = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
-        header.Children.Add(identity);
+        header.Children.Add(appIdentity);
         Grid.SetColumn(statusPanel, 1);
         header.Children.Add(statusPanel);
         var content = new StackPanel { Spacing = 8, Children = { header, actions } };
